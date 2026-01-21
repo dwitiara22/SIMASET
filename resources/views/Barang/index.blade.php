@@ -1,188 +1,347 @@
-@extends('layouts.app', ['activePage' => 'barang'])
+@extends('layouts.app', [
+    'activePage' => 'barang',
+])
 
 @section('content')
 <div class="p-6 min-h-screen bg-slate-50">
-    <div class="max-w-4xl mx-auto">
-        <nav class="flex mb-4 text-sm text-slate-500">
-            <a href="{{ route('Barang.index') }}" class="hover:text-teal-600">Data Barang</a>
-            <span class="mx-2">/</span>
-            <span class="text-slate-900 font-medium">Edit Inventaris</span>
-        </nav>
-
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-6 border-b border-slate-100 bg-slate-50/50">
-                <h2 class="text-xl font-bold text-slate-900 flex items-center">
-                    <i class="fas fa-edit mr-2 text-teal-600"></i> Edit Inventaris: {{ $barang->nama_barang }}
-                </h2>
+    <div class="max-w-7xl mx-auto">
+        {{-- Header Section --}}
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+            {{-- Title & Subtitle --}}
+            <div>
+                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Data Inventaris</h1>
+                <p class="text-sm text-slate-500 mt-1">Kelola dan pantau semua aset barang dalam satu panel terintegrasi.</p>
             </div>
 
-            <form id="formBarang" action="{{ route('Barang.update', $barang->id) }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-6">
-                @csrf
-                @method('PUT')
+            {{-- Action Buttons Group: Hanya Tampil Jika Login --}}
+            @auth
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="flex items-center bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
+                    {{-- EXPORT --}}
+                    <a href="{{ route('barangs.export') }}"
+                       class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-xl shadow">
+                        <i class="fas fa-file-excel mr-2"></i> Export
+                    </a>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {{-- Identitas --}}
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Barang</label>
-                        <input type="text" name="nama_barang" value="{{ old('nama_barang', $barang->nama_barang) }}" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-sm" required>
-                    </div>
+                    <div class="w-px h-6 bg-slate-200 mx-1"></div>
 
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Kondisi</label>
-                        <select name="kondisi" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white">
-                            <option value="Baik" {{ $barang->kondisi == 'Baik' ? 'selected' : '' }}>Baik</option>
-                            <option value="Rusak Ringan" {{ $barang->kondisi == 'Rusak Ringan' ? 'selected' : '' }}>Rusak Ringan</option>
-                            <option value="Rusak Berat" {{ $barang->kondisi == 'Rusak Berat' ? 'selected' : '' }}>Rusak Berat</option>
-                        </select>
-                    </div>
-
-                    {{-- Lokasi & GPS --}}
-                    <div class="md:col-span-2 p-5 bg-teal-50/50 rounded-2xl border border-teal-100">
-                        <div class="flex justify-between items-center mb-3">
-                            <label class="text-sm font-bold text-teal-800 flex items-center">
-                                <i class="fas fa-map-marker-alt mr-2"></i> Lokasi & GPS
-                            </label>
-                            <button type="button" onclick="updateLocation()" class="text-xs bg-teal-600 text-white px-3 py-1.5 rounded-lg hover:bg-teal-700 transition-all">
-                                <i class="fas fa-sync-alt mr-1"></i> Update Lokasi ke Posisi Sekarang
-                            </button>
-                        </div>
-
-                        <div class="space-y-4">
-                            <input type="text" name="lokasi" id="lokasi_nama" value="{{ old('lokasi', $barang->lokasi) }}" class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm">
-                            <div class="grid grid-cols-2 gap-4">
-                                <input type="text" name="latitude" id="lat" value="{{ old('latitude', $barang->latitude) }}" readonly class="bg-white/50 px-4 py-2 rounded-lg border border-slate-200 text-sm outline-none cursor-not-allowed">
-                                <input type="text" name="longitude" id="lng" value="{{ old('longitude', $barang->longitude) }}" readonly class="bg-white/50 px-4 py-2 rounded-lg border border-slate-200 text-sm outline-none cursor-not-allowed">
-                            </div>
-                        </div>
-                        <p id="geo-status" class="text-[11px] mt-2 text-slate-500 italic">Gunakan tombol update untuk menyegarkan koordinat GPS.</p>
-                    </div>
-
-                    {{-- Pengelolaan Foto --}}
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">
-                            Foto Barang <span id="photo-counter" class="text-teal-600">(4/4)</span>
+                    {{-- IMPORT --}}
+                    <form action="{{ route('barangs.import') }}" method="POST" enctype="multipart/form-data" id="importForm">
+                        @csrf
+                        <label class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow cursor-pointer">
+                            <i class="fas fa-file-import mr-2"></i>Import
+                            <input type="file" name="file" class="hidden" onchange="this.form.submit()" required>
                         </label>
+                    </form>
+                </div>
 
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4" id="preview-container">
-                            {{-- Foto akan dirender oleh JS --}}
+                {{-- Primary Action (Add) --}}
+                <a href="{{ route('Barang.create') }}"
+                   class="inline-flex items-center justify-center px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-teal-600/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+                    <i class="fas fa-plus mr-2"></i> Tambah Barang
+                </a>
+            </div>
+            @else
+            {{-- Pesan untuk User yang Belum Login (Opsional) --}}
+
+            @endauth
+        </div>
+
+        {{-- Statistik Ringkas --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Aset</div>
+                <div class="text-2xl font-bold text-slate-900">
+                    {{ $barangs->count() }}
+                    <span class="text-sm font-normal text-slate-400 ml-1">Barang</span>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-green-500">
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider text-green-600">Kondisi Baik</div>
+                <div class="text-2xl font-bold text-slate-900">{{ $barangs->where('kondisi', 'Baik')->count() }}</div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-red-500">
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider text-red-600">Rusak Berat</div>
+                <div class="text-2xl font-bold text-slate-900">{{ $barangs->where('kondisi', 'Rusak Berat')->count() }}</div>
+            </div>
+        </div>
+{{-- Filter & Search Section --}}
+<div class="mb-6 flex flex-col md:flex-row gap-4 justify-between items-end">
+    <form action="{{ route('Barang.index') }}" method="GET" class="w-full flex flex-col md:flex-row gap-4 items-end">
+
+        {{-- Entries Per Page --}}
+        <div class="w-full md:w-auto">
+            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Tampilkan</label>
+            <select name="per_page" onchange="this.form.submit()"
+                    class="w-full md:w-24 bg-white border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 block p-2.5 shadow-sm">
+                <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+            </select>
+        </div>
+
+        {{-- Search Input --}}
+        <div class="relative w-full md:w-80">
+            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Cari Barang</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <i class="fas fa-search text-slate-400 text-xs"></i>
+                </div>
+                <input type="text" name="search" value="{{ request('search') }}"
+                       class="bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 block w-full pl-10 p-2.5 shadow-sm"
+                       placeholder="Nama, kode, atau ruangan...">
+                @if(request('search'))
+                    <a href="{{ route('Barang.index') }}" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-red-500">
+                        <i class="fas fa-times-circle"></i>
+                    </a>
+                @endif
+            </div>
+        </div>
+
+        <button type="submit" class="hidden md:block bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-700 transition-all">
+            Filter
+        </button>
+    </form>
+</div>
+
+{{-- Statistik Ringkas dan Bagian Tabel tetap di bawah sini... --}}
+        {{-- Main Content Card --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+
+                {{-- TABLE VIEW (Desktop) --}}
+                <table class="w-full text-left border-collapse hidden md:table">
+                    <thead>
+                        <tr class="bg-slate-50/50 border-b border-slate-100 uppercase text-[11px] font-bold text-slate-500 tracking-wider">
+                            <th class="px-4 py-4 text-center w-10">No</th>
+                            <th class="px-6 py-4">Informasi Barang</th>
+                            <th class="px-6 py-4">Foto</th>
+                            <th class="px-6 py-4 text-center">Kondisi</th>
+                            <th class="px-6 py-4">Lokasi/Ruangan</th>
+                            <th class="px-6 py-4">Input Oleh</th>
+                            <th class="px-6 py-4 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse ($barangs as $index => $item)
+                        <tr class="hover:bg-slate-50/50 transition-colors group">
+                            <td class="px-4 py-4 text-center text-xs font-mono text-slate-400">
+                                {{ ($barangs instanceof \Illuminate\Pagination\LengthAwarePaginator) ? ($barangs->firstItem() + $index) : ($index + 1) }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-slate-900 text-sm mb-0.5">{{ $item->nama_barang }}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono font-bold uppercase">{{ $item->kode_barang }}</span>
+                                        <span class="text-[11px] text-teal-600 font-bold">Rp {{ number_format($item->nilai_peroleh, 0, ',', '.') }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex -space-x-3">
+                                    @php $fotos = is_array($item->fotoBarang) ? $item->fotoBarang : json_decode($item->fotoBarang); @endphp
+                                    @if($fotos)
+                                        @foreach(array_slice($fotos, 0, 3) as $foto)
+                                            <img src="{{ asset('storage/' . $foto) }}" class="w-9 h-9 rounded-lg border-2 border-white object-cover shadow-sm bg-slate-200">
+                                        @endforeach
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @php
+                                    $color = [
+                                        'Baik' => 'bg-green-100 text-green-700',
+                                        'Rusak Ringan' => 'bg-orange-100 text-orange-700',
+                                        'Rusak Berat' => 'bg-red-100 text-red-700'
+                                    ][$item->kondisi] ?? 'bg-slate-100';
+                                @endphp
+                                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase {{ $color }}">
+                                    {{ $item->kondisi }}
+                                </span>
+                            </td>
+                            {{-- Kolom Lokasi --}}
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col gap-1">
+                                    <div class="text-xs text-slate-700 font-bold flex items-center">
+                                        <i class="fas fa-door-open mr-1.5 text-teal-500"></i> {{ $item->ruangan ?? 'Tanpa Ruangan' }}
+                                    </div>
+                                    @if($item->latitude && $item->longitude)
+                                        <a href="https://www.google.com/maps?q={{ $item->latitude }},{{ $item->longitude }}"
+                                        target="_blank"
+                                        class="group/loc flex flex-col max-w-[180px] hover:text-teal-600 transition-colors">
+                                            <div class="text-[10px] text-slate-500 flex items-start leading-tight">
+                                                <i class="fas fa-map-marker-alt mr-1.5 text-red-500 mt-0.5"></i>
+                                                <span class="underline decoration-slate-300 underline-offset-2 group-hover/loc:decoration-teal-500">
+                                                    {{ $item->lokasi ?? 'Lihat di Peta' }}
+                                                </span>
+                                            </div>
+                                        </a>
+                                    @else
+                                        <div class="text-[10px] text-slate-400 flex items-center italic">
+                                            <i class="fas fa-map-marker-alt mr-1.5 opacity-50"></i> GPS tidak tersedia
+                                        </div>
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-full bg-slate-100 border flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                        {{ strtoupper(substr($item->user->nama ?? 'S', 0, 1)) }}
+                                    </div>
+                                    <span class="text-xs text-slate-700">{{ $item->user->nama ?? 'System' }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-1">
+                                    {{-- Tombol Lihat: Bisa dilihat oleh publik maupun yang sudah login --}}
+                                    <a href="{{ route('Barang.show', $item->id) }}"
+                                    class="p-2 text-slate-400 hover:text-teal-600 transition-colors"
+                                    title="Lihat Detail">
+                                        <i class="fas fa-eye text-sm"></i>
+                                    </a>
+
+                                    {{-- Bagian Khusus User Login --}}
+                                    @auth
+                                        {{-- Tombol Edit --}}
+                                        <a href="{{ route('Barang.edit', $item->id) }}"
+                                        class="p-2 text-slate-400 hover:text-blue-600 transition-colors"
+                                        title="Edit Data">
+                                            <i class="fas fa-edit text-sm"></i>
+                                        </a>
+
+                                        {{-- Tombol Hapus --}}
+                                        <form action="{{ route('Barang.destroy', $item->id) }}" method="POST" class="inline form-delete">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button"
+                                                    class="p-2 text-slate-400 hover:text-red-600 btn-delete transition-colors"
+                                                    data-name="{{ $item->nama_barang }}"
+                                                    title="Hapus Data">
+                                                <i class="fas fa-trash text-sm"></i>
+                                            </button>
+                                        </form>
+                                    @endauth
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center text-slate-500">Belum ada data inventaris.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+
+                {{-- MOBILE VIEW --}}
+                <div class="md:hidden divide-y divide-slate-100">
+                    @forelse ($barangs as $index => $item)
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-mono text-slate-400">#{{ ($barangs instanceof \Illuminate\Pagination\LengthAwarePaginator) ? ($barangs->firstItem() + $index) : ($index + 1) }}</span>
+                                <span class="font-bold text-slate-900">{{ $item->nama_barang }}</span>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase {{ $item->kondisi == 'Baik' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                                {{ $item->kondisi }}
+                            </span>
                         </div>
+                       <div class="flex justify-between items-center">
+                            {{-- Harga Barang tetap tampil untuk publik --}}
+                            <span class="text-xs font-bold text-teal-600">
+                                Rp {{ number_format($item->nilai_peroleh, 0, ',', '.') }}
+                            </span>
 
-                        <div id="drop-area" class="relative group border-2 border-slate-200 border-dashed rounded-xl p-8 text-center cursor-pointer hover:border-teal-400">
-                            <input type="file" id="file-upload" name="fotoBarang[]" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" multiple>
-                            <div class="space-y-2">
-                                <i class="fas fa-plus-circle text-slate-300 text-3xl"></i>
-                                <p class="text-sm text-slate-600">Tambah Foto Baru</p>
-                                <p class="text-xs text-slate-400">Pastikan total tetap 4 foto</p>
+                            <div class="flex gap-2">
+                                {{-- Tombol Lihat (Show) - Tampil untuk siapa saja --}}
+                                <a href="{{ route('Barang.show', $item->id) }}"
+                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
+                                    <i class="fas fa-eye text-xs"></i>
+                                </a>
+
+                                {{-- Hanya tampil jika user sudah LOGIN --}}
+                                @auth
+                                    {{-- Tombol Edit --}}
+                                    <a href="{{ route('Barang.edit', $item->id) }}"
+                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+                                        <i class="fas fa-edit text-xs"></i>
+                                    </a>
+
+                                    {{-- Tombol Delete --}}
+                                    <form action="{{ route('Barang.destroy', $item->id) }}" method="POST" class="inline form-delete">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button"
+                                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 btn-delete hover:bg-red-100 transition-colors"
+                                                data-name="{{ $item->nama_barang }}">
+                                            <i class="fas fa-trash text-xs"></i>
+                                        </button>
+                                    </form>
+                                @endauth
                             </div>
                         </div>
                     </div>
+                    @empty
+                    <div class="p-10 text-center text-slate-400 text-sm">Data kosong.</div>
+                    @endforelse
                 </div>
+            </div>
 
-                <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
-                    <a href="{{ route('Barang.index') }}" class="px-6 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold">Batal</a>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 shadow-lg shadow-teal-600/20 flex items-center">
-                        <i class="fas fa-save mr-2"></i> Simpan Perubahan
-                    </button>
-                </div>
-            </form>
+            @if($barangs instanceof \Illuminate\Pagination\LengthAwarePaginator)
+            <div class="p-4 border-t border-slate-100 bg-slate-50/30">
+                {{ $barangs->links() }}
+            </div>
+            @endif
         </div>
     </div>
 </div>
 
+{{-- SCRIPT SWEETALERT --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    const previewContainer = document.getElementById('preview-container');
-    const photoCounter = document.getElementById('photo-counter');
-    const fileInput = document.getElementById('file-upload');
-    const form = document.getElementById('formBarang');
+    document.addEventListener('DOMContentLoaded', function() {
+        // Cari semua tombol yang punya class btn-delete
+        const deleteButtons = document.querySelectorAll('.btn-delete');
 
-    // Load foto lama dari database
-    let existingPhotos = @json(json_decode($barang->foto_barang) ?? []);
-    let newFiles = new DataTransfer();
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                const form = this.closest('form');
+                const barangName = this.getAttribute('data-name');
 
-    function renderPreviews() {
-        previewContainer.innerHTML = '';
-        let count = 0;
-
-        // Render Foto yang sudah ada
-        existingPhotos.forEach((photo, index) => {
-            const div = document.createElement('div');
-            div.className = "relative aspect-square rounded-xl overflow-hidden border border-slate-200 shadow-sm group";
-            div.innerHTML = `
-                <img src="/storage/barang/${photo}" class="w-full h-full object-cover">
-                <button type="button" onclick="removeExisting(${index})" class="absolute inset-0 bg-red-600/80 text-white opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                    <i class="fas fa-trash mr-2"></i> Hapus
-                </button>
-                <input type="hidden" name="existing_photos[]" value="${photo}">
-            `;
-            previewContainer.appendChild(div);
-            count++;
+                Swal.fire({
+                    title: 'Hapus Barang?',
+                    text: `Apakah Anda yakin ingin menghapus "${barangName}"? Data yang dihapus tidak bisa dikembalikan.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0d9488', // Warna Teal-600
+                    cancelButtonColor: '#f43f5e',  // Warna Rose-500
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal',
+                    borderRadius: '1rem',
+                    customClass: {
+                        popup: 'rounded-3xl',
+                        confirmButton: 'rounded-xl px-6 py-2.5 text-sm font-bold',
+                        cancelButton: 'rounded-xl px-6 py-2.5 text-sm font-bold'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
         });
 
-        // Render Foto Baru
-        Array.from(newFiles.files).forEach((file, index) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const div = document.createElement('div');
-                div.className = "relative aspect-square rounded-xl overflow-hidden border border-teal-200 shadow-sm group";
-                div.innerHTML = `
-                    <img src="${e.target.result}" class="w-full h-full object-cover">
-                    <button type="button" onclick="removeNew(${index})" class="absolute inset-0 bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                        <i class="fas fa-times mr-2"></i> Batal
-                    </button>
-                `;
-                previewContainer.appendChild(div);
-            }
-            reader.readAsDataURL(file);
-            count++;
-        });
-
-        photoCounter.innerText = `(${count}/4)`;
-        photoCounter.className = count === 4 ? "text-green-600 font-bold" : "text-red-500 font-bold";
-    }
-
-    function removeExisting(index) { existingPhotos.splice(index, 1); renderPreviews(); }
-    function removeNew(index) {
-        const dt = new DataTransfer();
-        Array.from(newFiles.files).forEach((f, i) => { if(i !== index) dt.items.add(f); });
-        newFiles = dt;
-        renderPreviews();
-    }
-
-    fileInput.addEventListener('change', function() {
-        for (let file of this.files) {
-            if (existingPhotos.length + newFiles.items.length >= 4) break;
-            newFiles.items.add(file);
-        }
-        renderPreviews();
+        // Tampilkan Notifikasi Sukses Jika Ada (Session Flash)
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                showConfirmButton: false,
+                timer: 2000,
+                borderRadius: '1rem'
+            });
+        @endif
     });
-
-    // --- Geolocation Update ---
-    function updateLocation() {
-        const status = document.getElementById('geo-status');
-        status.innerText = "Mencari lokasi terbaru...";
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((pos) => {
-                document.getElementById('lat').value = pos.coords.latitude;
-                document.getElementById('lng').value = pos.coords.longitude;
-                fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
-                    .then(r => r.json()).then(data => {
-                        document.getElementById('lokasi_nama').value = data.display_name;
-                        status.innerText = "Lokasi diperbarui!";
-                        status.className = "text-[11px] mt-2 text-green-600 font-bold";
-                    });
-            }, () => { status.innerText = "Gagal akses GPS."; });
-        }
-    }
-
-    form.addEventListener('submit', (e) => {
-        fileInput.files = newFiles.files;
-        if (existingPhotos.length + newFiles.items.length !== 4) {
-            e.preventDefault();
-            Swal.fire('Error', 'Total foto harus tepat 4.', 'error');
-        }
-    });
-
-    window.onload = renderPreviews;
 </script>
 @endsection

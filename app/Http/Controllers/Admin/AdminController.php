@@ -10,15 +10,24 @@ use App\Http\Controllers\Controller;
 
 class AdminController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Mengambil user dengan role 1 (Super Admin) dan 2 (Admin)
-        $users = User::whereIn('role', [1, 2])->latest()->get();
+        // Ambil input pencarian dan jumlah per halaman (default 10)
+        $search = $request->input('search');
+        $perPage = $request->input('per_page', 10);
 
-        return view('Admin.index', [
-            'activePage' => 'admin',
-            'users' => $users
-        ]);
+        $users = User::query()
+            ->when($search, function ($query, $search) {
+                return $query->where('nama', 'like', "%{$search}%")
+                            ->orWhere('nip', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%")
+                            ->orWhere('jabatan', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString(); // Menjaga agar filter tidak hilang saat pindah halaman
+
+        return view('admin.index', compact('users'));
     }
     public function create(){
         return view('Admin.create');

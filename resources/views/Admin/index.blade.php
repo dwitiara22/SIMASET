@@ -55,7 +55,45 @@
                 <i class="fas fa-plus mr-2"></i> Tambah Admin
             </a>
         </div>
+{{-- Filter & Search Section --}}
+<div class="mb-6 flex flex-col md:flex-row gap-4 justify-between items-end">
+    <form action="{{ route('Admin.index') }}" method="GET" class="w-full flex flex-col md:flex-row gap-4 items-end">
 
+        {{-- Entries Per Page --}}
+        <div class="w-full md:w-32">
+            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Tampilkan</label>
+            <select name="per_page" onchange="this.form.submit()"
+                    class="w-full bg-white border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 block p-2.5 shadow-sm transition-all">
+                @foreach([10, 25, 50, 100] as $size)
+                    <option value="{{ $size }}" {{ request('per_page') == $size ? 'selected' : '' }}>{{ $size }} Baris</option>
+                @endforeach
+            </select>
+        </div>
+
+        {{-- Search Input --}}
+        <div class="relative w-full md:max-w-md">
+            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Cari Admin</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <i class="fas fa-search text-slate-400 text-xs"></i>
+                </div>
+                <input type="text" name="search" value="{{ request('search') }}"
+                       class="bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 block w-full pl-10 p-2.5 shadow-sm transition-all"
+                       placeholder="Nama, NIP, Email, atau Jabatan...">
+
+                @if(request('search'))
+                    <a href="{{ route('Admin.index') }}" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-red-500">
+                        <i class="fas fa-times-circle"></i>
+                    </a>
+                @endif
+            </div>
+        </div>
+
+        <button type="submit" class="bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-700 transition-all shadow-sm">
+            Cari
+        </button>
+    </form>
+</div>
         {{-- Table & Card Section --}}
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
@@ -116,6 +154,12 @@
                         @endforelse
                     </tbody>
                 </table>
+                {{-- Tambahkan di bawah table/card section untuk menampilkan navigasi halaman --}}
+@if($users instanceof \Illuminate\Pagination\LengthAwarePaginator)
+    <div class="p-4 border-t border-slate-100 bg-slate-50/30">
+        {{ $users->links() }}
+    </div>
+@endif
             </div>
 
             {{-- VIEW MOBILE: List Card (Hanya muncul di mobile) --}}

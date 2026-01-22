@@ -12,104 +12,118 @@
                 <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Data Inventaris</h1>
                 <p class="text-sm text-slate-500 mt-1">Kelola dan pantau semua aset barang dalam satu panel terintegrasi.</p>
             </div>
+                {{-- Action Buttons Group --}}
+                @auth
+                    <div class="flex flex-wrap items-center gap-3">
 
-            {{-- Action Buttons Group: Hanya Tampil Jika Login --}}
-            @auth
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="flex items-center bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
-                    {{-- EXPORT --}}
-                    <a href="{{ route('barangs.export') }}"
-                       class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-xl shadow">
-                        <i class="fas fa-file-excel mr-2"></i> Export
-                    </a>
+                        {{-- BAGIAN KHUSUS ROLE 2 (Export & Import) --}}
+                        @if(auth()->user()->role == 2)
+                            <div class="flex items-center bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
+                                {{-- EXPORT --}}
+                                <button onclick="openExportModal()"
+                                    class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-xl shadow">
+                                    <i class="fas fa-file-excel mr-2"></i> Export
+                                </button>
 
-                    <div class="w-px h-6 bg-slate-200 mx-1"></div>
+                                <div id="exportModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center">
+                                    <div class="bg-white w-full max-w-md rounded-xl shadow-lg p-6">
+                                        <h2 class="text-lg font-semibold mb-4 text-gray-800">Pilih Metode Export</h2>
+                                        <div class="space-y-3">
+                                            <a href="{{ url('/barang/export/download') }}" class="block w-full text-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">📥 Export ke Excel</a>
+                                            <a href="{{ url('/barang/export/server') }}" class="block w-full text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">☁️ Upload ke Drive</a>
+                                        </div>
+                                        <button onclick="closeExportModal()" class="mt-4 w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg">Batal</button>
+                                    </div>
+                                </div>
 
-                    {{-- IMPORT --}}
-                    <form action="{{ route('barangs.import') }}" method="POST" enctype="multipart/form-data" id="importForm">
-                        @csrf
-                        <label class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow cursor-pointer">
-                            <i class="fas fa-file-import mr-2"></i>Import
-                            <input type="file" name="file" class="hidden" onchange="this.form.submit()" required>
-                        </label>
-                    </form>
-                </div>
+                                <div class="w-px h-6 bg-slate-200 mx-1"></div>
 
-                {{-- Primary Action (Add) --}}
-                <a href="{{ route('Barang.create') }}"
-                   class="inline-flex items-center justify-center px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-teal-600/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
-                    <i class="fas fa-plus mr-2"></i> Tambah Barang
-                </a>
-            </div>
-            @else
-            {{-- Pesan untuk User yang Belum Login (Opsional) --}}
+                                {{-- IMPORT --}}
+                                <form action="{{ route('barangs.import') }}" method="POST" enctype="multipart/form-data" id="importForm">
+                                    @csrf
+                                    <label class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow cursor-pointer">
+                                        <i class="fas fa-file-import mr-2"></i> Import
+                                        <input type="file" name="file" class="hidden" onchange="this.form.submit()" required>
+                                    </label>
+                                </form>
+                            </div>
+                        @endif
 
-            @endauth
+                        {{-- BAGIAN UNTUK SEMUA ROLE (1, 2, 3) YANG SUDAH LOGIN --}}
+                        <a href="{{ route('Barang.create') }}"
+                        class="inline-flex items-center justify-center px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-teal-600/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+                            <i class="fas fa-plus mr-2"></i> Tambah Barang
+                        </a>
+                    </div>
+                @endauth
         </div>
 
         {{-- Statistik Ringkas --}}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Aset</div>
-                <div class="text-2xl font-bold text-slate-900">
-                    {{ $barangs->count() }}
-                    <span class="text-sm font-normal text-slate-400 ml-1">Barang</span>
+                <div class="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Total Aset</div>
+                <div class="text-xl md:text-2xl font-bold text-slate-900">
+                    {{ $barangs->total() }}
+                    <span class="text-xs font-normal text-slate-400"> unit</span>
                 </div>
             </div>
+
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-green-500">
-                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider text-green-600">Kondisi Baik</div>
-                <div class="text-2xl font-bold text-slate-900">{{ $barangs->where('kondisi', 'Baik')->count() }}</div>
-            </div>
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-red-500">
-                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider text-red-600">Rusak Berat</div>
-                <div class="text-2xl font-bold text-slate-900">{{ $barangs->where('kondisi', 'Rusak Berat')->count() }}</div>
-            </div>
-        </div>
-{{-- Filter & Search Section --}}
-<div class="mb-6 flex flex-col md:flex-row gap-4 justify-between items-end">
-    <form action="{{ route('Barang.index') }}" method="GET" class="w-full flex flex-col md:flex-row gap-4 items-end">
-
-        {{-- Entries Per Page --}}
-        <div class="w-full md:w-auto">
-            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Tampilkan</label>
-            <select name="per_page" onchange="this.form.submit()"
-                    class="w-full md:w-24 bg-white border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 block p-2.5 shadow-sm">
-                <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
-                <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
-                <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
-                <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
-            </select>
-        </div>
-
-        {{-- Search Input --}}
-        <div class="relative w-full md:w-80">
-            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Cari Barang</label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <i class="fas fa-search text-slate-400 text-xs"></i>
+                <div class="text-green-600 text-[10px] font-bold uppercase tracking-wider">Baik</div>
+                <div class="text-xl md:text-2xl font-bold text-slate-900">
+                    {{ $allStats->where('kondisi', 'Baik')->count() }}
                 </div>
-                <input type="text" name="search" value="{{ request('search') }}"
-                       class="bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 block w-full pl-10 p-2.5 shadow-sm"
-                       placeholder="Nama, kode, atau ruangan...">
-                @if(request('search'))
-                    <a href="{{ route('Barang.index') }}" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-red-500">
-                        <i class="fas fa-times-circle"></i>
-                    </a>
-                @endif
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-orange-400">
+                <div class="text-orange-500 text-[10px] font-bold uppercase tracking-wider">Rusak Ringan</div>
+                <div class="text-xl md:text-2xl font-bold text-slate-900">
+                    {{ $allStats->where('kondisi', 'Rusak Ringan')->count() }}
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-red-500">
+                <div class="text-red-600 text-[10px] font-bold uppercase tracking-wider">Rusak Berat</div>
+                <div class="text-xl md:text-2xl font-bold text-slate-900">
+                    {{ $allStats->where('kondisi', 'Rusak Berat')->count() }}
+                </div>
             </div>
         </div>
 
-        <button type="submit" class="hidden md:block bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-700 transition-all">
-            Filter
-        </button>
-    </form>
-</div>
+        {{-- Filter & Search Section --}}
+        <div class="mb-6 flex flex-col md:flex-row gap-4 justify-between items-end">
+            <form action="{{ route('Barang.index') }}" method="GET" class="w-full flex flex-col md:flex-row gap-4 items-end">
+                <div class="w-full md:w-auto">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Tampilkan</label>
+                    <select name="per_page" onchange="this.form.submit()"
+                            class="w-full md:w-24 bg-white border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 block p-2.5 shadow-sm">
+                        <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                    </select>
+                </div>
 
-{{-- Statistik Ringkas dan Bagian Tabel tetap di bawah sini... --}}
+                <div class="relative w-full md:w-80">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Cari Barang</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i class="fas fa-search text-slate-400 text-xs"></i>
+                        </div>
+                        <input type="text" name="search" value="{{ request('search') }}"
+                            class="bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 block w-full pl-10 p-2.5 shadow-sm"
+                            placeholder="Nama, kode, atau ruangan...">
+                    </div>
+                </div>
+                <button type="submit" class="hidden md:block bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-700 transition-all">
+                    Filter
+                </button>
+            </form>
+        </div>
+
         {{-- Main Content Card --}}
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="overflow-x-auto">
-
                 {{-- TABLE VIEW (Desktop) --}}
                 <table class="w-full text-left border-collapse hidden md:table">
                     <thead>
@@ -160,7 +174,6 @@
                                     {{ $item->kondisi }}
                                 </span>
                             </td>
-                            {{-- Kolom Lokasi --}}
                             <td class="px-6 py-4">
                                 <div class="flex flex-col gap-1">
                                     <div class="text-xs text-slate-700 font-bold flex items-center">
@@ -168,19 +181,14 @@
                                     </div>
                                     @if($item->latitude && $item->longitude)
                                         <a href="https://www.google.com/maps?q={{ $item->latitude }},{{ $item->longitude }}"
-                                        target="_blank"
-                                        class="group/loc flex flex-col max-w-[180px] hover:text-teal-600 transition-colors">
+                                        target="_blank" class="group/loc flex flex-col max-w-[180px] hover:text-teal-600 transition-colors">
                                             <div class="text-[10px] text-slate-500 flex items-start leading-tight">
                                                 <i class="fas fa-map-marker-alt mr-1.5 text-red-500 mt-0.5"></i>
-                                                <span class="underline decoration-slate-300 underline-offset-2 group-hover/loc:decoration-teal-500">
+                                                <span class="underline decoration-slate-300 underline-offset-2">
                                                     {{ $item->lokasi ?? 'Lihat di Peta' }}
                                                 </span>
                                             </div>
                                         </a>
-                                    @else
-                                        <div class="text-[10px] text-slate-400 flex items-center italic">
-                                            <i class="fas fa-map-marker-alt mr-1.5 opacity-50"></i> GPS tidak tersedia
-                                        </div>
                                     @endif
                                 </div>
                             </td>
@@ -194,33 +202,22 @@
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end gap-1">
-                                    {{-- Tombol Lihat: Bisa dilihat oleh publik maupun yang sudah login --}}
-                                    <a href="{{ route('Barang.show', $item->id) }}"
-                                    class="p-2 text-slate-400 hover:text-teal-600 transition-colors"
-                                    title="Lihat Detail">
+                                    <a href="{{ route('Barang.show', $item->id) }}" class="p-2 text-slate-400 hover:text-teal-600 transition-colors" title="Lihat Detail">
                                         <i class="fas fa-eye text-sm"></i>
                                     </a>
 
-                                    {{-- Bagian Khusus User Login --}}
                                     @auth
-                                        {{-- Tombol Edit --}}
-                                        <a href="{{ route('Barang.edit', $item->id) }}"
-                                        class="p-2 text-slate-400 hover:text-blue-600 transition-colors"
-                                        title="Edit Data">
-                                            <i class="fas fa-edit text-sm"></i>
-                                        </a>
-
-                                        {{-- Tombol Hapus --}}
-                                        <form action="{{ route('Barang.destroy', $item->id) }}" method="POST" class="inline form-delete">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="button"
-                                                    class="p-2 text-slate-400 hover:text-red-600 btn-delete transition-colors"
-                                                    data-name="{{ $item->nama_barang }}"
-                                                    title="Hapus Data">
-                                                <i class="fas fa-trash text-sm"></i>
-                                            </button>
-                                        </form>
+                                        @if(auth()->user()->role == 2)
+                                            <a href="{{ route('Barang.edit', $item->id) }}" class="p-2 text-slate-400 hover:text-blue-600 transition-colors" title="Edit Data">
+                                                <i class="fas fa-edit text-sm"></i>
+                                            </a>
+                                            <form action="{{ route('Barang.destroy', $item->id) }}" method="POST" class="inline form-delete">
+                                                @csrf @method('DELETE')
+                                                <button type="button" class="p-2 text-slate-400 hover:text-red-600 btn-delete transition-colors" data-name="{{ $item->nama_barang }}" title="Hapus Data">
+                                                    <i class="fas fa-trash text-sm"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                     @endauth
                                 </div>
                             </td>
@@ -246,37 +243,28 @@
                                 {{ $item->kondisi }}
                             </span>
                         </div>
-                       <div class="flex justify-between items-center">
-                            {{-- Harga Barang tetap tampil untuk publik --}}
+                        <div class="flex justify-between items-center">
                             <span class="text-xs font-bold text-teal-600">
                                 Rp {{ number_format($item->nilai_peroleh, 0, ',', '.') }}
                             </span>
 
                             <div class="flex gap-2">
-                                {{-- Tombol Lihat (Show) - Tampil untuk siapa saja --}}
-                                <a href="{{ route('Barang.show', $item->id) }}"
-                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
+                                <a href="{{ route('Barang.show', $item->id) }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 text-slate-500">
                                     <i class="fas fa-eye text-xs"></i>
                                 </a>
 
-                                {{-- Hanya tampil jika user sudah LOGIN --}}
                                 @auth
-                                    {{-- Tombol Edit --}}
-                                    <a href="{{ route('Barang.edit', $item->id) }}"
-                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
-                                        <i class="fas fa-edit text-xs"></i>
-                                    </a>
-
-                                    {{-- Tombol Delete --}}
-                                    <form action="{{ route('Barang.destroy', $item->id) }}" method="POST" class="inline form-delete">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button"
-                                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 btn-delete hover:bg-red-100 transition-colors"
-                                                data-name="{{ $item->nama_barang }}">
-                                            <i class="fas fa-trash text-xs"></i>
-                                        </button>
-                                    </form>
+                                    @if(auth()->user()->role == 2)
+                                        <a href="{{ route('Barang.edit', $item->id) }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                                            <i class="fas fa-edit text-xs"></i>
+                                        </a>
+                                        <form action="{{ route('Barang.destroy', $item->id) }}" method="POST" class="inline form-delete">
+                                            @csrf @method('DELETE')
+                                            <button type="button" class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 btn-delete" data-name="{{ $item->nama_barang }}">
+                                                <i class="fas fa-trash text-xs"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 @endauth
                             </div>
                         </div>
@@ -296,42 +284,41 @@
     </div>
 </div>
 
+{{-- MODAL SCRIPTS --}}
+<script>
+    function openExportModal() {
+        document.getElementById('exportModal').classList.remove('hidden');
+    }
+    function closeExportModal() {
+        document.getElementById('exportModal').classList.add('hidden');
+    }
+</script>
+
 {{-- SCRIPT SWEETALERT --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Cari semua tombol yang punya class btn-delete
         const deleteButtons = document.querySelectorAll('.btn-delete');
-
         deleteButtons.forEach(button => {
             button.addEventListener('click', function(e) {
                 const form = this.closest('form');
                 const barangName = this.getAttribute('data-name');
-
                 Swal.fire({
                     title: 'Hapus Barang?',
-                    text: `Apakah Anda yakin ingin menghapus "${barangName}"? Data yang dihapus tidak bisa dikembalikan.`,
+                    text: `Hapus "${barangName}"? Data tidak bisa dikembalikan.`,
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#0d9488', // Warna Teal-600
-                    cancelButtonColor: '#f43f5e',  // Warna Rose-500
+                    confirmButtonColor: '#0d9488',
+                    cancelButtonColor: '#f43f5e',
                     confirmButtonText: 'Ya, Hapus!',
                     cancelButtonText: 'Batal',
-                    borderRadius: '1rem',
-                    customClass: {
-                        popup: 'rounded-3xl',
-                        confirmButton: 'rounded-xl px-6 py-2.5 text-sm font-bold',
-                        cancelButton: 'rounded-xl px-6 py-2.5 text-sm font-bold'
-                    }
+                    customClass: { popup: 'rounded-3xl' }
                 }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
+                    if (result.isConfirmed) form.submit();
                 });
             });
         });
 
-        // Tampilkan Notifikasi Sukses Jika Ada (Session Flash)
         @if(session('success'))
             Swal.fire({
                 icon: 'success',
@@ -339,7 +326,7 @@
                 text: "{{ session('success') }}",
                 showConfirmButton: false,
                 timer: 2000,
-                borderRadius: '1rem'
+                customClass: { popup: 'rounded-3xl' }
             });
         @endif
     });

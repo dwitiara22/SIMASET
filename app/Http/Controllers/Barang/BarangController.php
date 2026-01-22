@@ -17,21 +17,29 @@ class BarangController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil parameter search dan per_page (default 10)
         $search = $request->input('search');
         $perPage = $request->input('per_page', 10);
 
-        $barangs = Barang::query()
-            ->when($search, function ($query, $search) {
-                return $query->where('nama_barang', 'like', "%{$search}%")
-                            ->orWhere('kode_barang', 'like', "%{$search}%")
-                            ->orWhere('ruangan', 'like', "%{$search}%");
-            })
-            ->latest()
-            ->paginate($perPage)
-            ->withQueryString(); // Sangat penting agar filter tidak hilang saat ganti halaman
+        // 1. Query Dasar
+        $query = Barang::query();
 
-        return view('barang.index', compact('barangs'));
+        // 2. Terapkan Filter Search (Jika ada)
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('nama_barang', 'like', "%{$search}%")
+                ->orWhere('kode_barang', 'like', "%{$search}%")
+                ->orWhere('ruangan', 'like', "%{$search}%");
+            });
+        }
+
+        // 3. Ambil data UNTUK STATISTIK (Tanpa Paginate)
+        // Kita ambil semua ID dan Kondisi saja agar ringan secara memori
+        $allStats = $query->get(['id', 'kondisi']);
+
+        // 4. Ambil data UNTUK TABEL (Dengan Paginate)
+        $barangs = $query->latest()->paginate($perPage)->withQueryString();
+
+        return view('barang.index', compact('barangs', 'allStats'));
     }
 
     public function create() {

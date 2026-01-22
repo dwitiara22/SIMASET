@@ -17,15 +17,20 @@ class AdminController extends Controller
         $perPage = $request->input('per_page', 10);
 
         $users = User::query()
+            // Filter hanya Role 1 dan Role 2
+            ->whereIn('role', [1, 2])
             ->when($search, function ($query, $search) {
-                return $query->where('nama', 'like', "%{$search}%")
-                            ->orWhere('nip', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%")
-                            ->orWhere('jabatan', 'like', "%{$search}%");
+                // Gunakan where nested agar kondisi Role tidak terganggu oleh OR
+                return $query->where(function($q) use ($search) {
+                    $q->where('nama', 'like', "%{$search}%")
+                    ->orWhere('nip', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('jabatan', 'like', "%{$search}%");
+                });
             })
             ->latest()
             ->paginate($perPage)
-            ->withQueryString(); // Menjaga agar filter tidak hilang saat pindah halaman
+            ->withQueryString();
 
         return view('admin.index', compact('users'));
     }

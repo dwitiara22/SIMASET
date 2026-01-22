@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\PengajuController;
 use App\Http\Controllers\Barang\BarangController;
+use App\Http\Controllers\Barang\BarangExportController;
 
 Route::get('/', [DashboarController::class, 'index'])->name('dashboard');
 
@@ -22,31 +23,34 @@ Route::middleware(['auth', 'cek_status:1'])->group(function () {
     Route::resource('pengaju', PengajuController::class)->names('Pengaju');
 });
 
-// 1. Rute Index (Publik) - OK di atas
-Route::get('/barangs', [BarangController::class, 'index'])->name('Barang.index');
 
-// 2. Route Terproteksi (Harus Login)
+
+// 1. Rute Publik atau Tanpa Login (Jika diperlukan)
+Route::get('/barang', [BarangController::class, 'index'])->name('Barang.index');
+Route::get('/barangs/{barang}', [BarangController::class, 'show'])->name('Barang.show');
+
+// 2. Rute Terproteksi (Harus Login)
 Route::middleware('auth')->group(function () {
 
-    // TARUH EXPORT & IMPORT DI ATAS {barang}
-    Route::get('/barangs/export', [BarangController::class, 'export'])->name('barangs.export');
-    Route::post('/barangs/import', [BarangController::class, 'import'])->name('barangs.import');
+    // SEMUA ROLE (1, 2, 3) bisa Create & Store
+    Route::get('/barangs/create', [BarangController::class, 'create'])->name('Barang.create');
+    Route::post('/barangs', [BarangController::class, 'store'])->name('Barang.store');
 
-    // Resource (Isinya ada barangs/create) juga harus di atas rute {barang}
-    Route::resource('barangs', BarangController::class)
-        ->except(['index', 'show'])
-        ->names([
-            'create'  => 'Barang.create',
-            'store'   => 'Barang.store',
-            'edit'    => 'Barang.edit',
-            'update'  => 'Barang.update',
-            'destroy' => 'Barang.destroy',
-        ]);
+    // KHUSUS ROLE 1 & 2 (Super Admin & Admin)
+    // Menggunakan prefix atau logic tambahan untuk Edit, Delete, Cetak, Export, Import
+    Route::middleware(['auth', 'cek_status:1, 2'])->group(function () {
 
-    // Fitur Cetak PDF
-    Route::get('/barangs/{id}/cetak-pdf', [BarangController::class, 'cetakPdf'])->name('Barang.cetakPdf');
+        // Edit, Update, Destroy
+        Route::get('/barangs/{barang}/edit', [BarangController::class, 'edit'])->name('Barang.edit');
+        Route::put('/barangs/{barang}', [BarangController::class, 'update'])->name('Barang.update');
+        Route::delete('/barangs/{barang}', [BarangController::class, 'destroy'])->name('Barang.destroy');
+
+        // Cetak PDF
+        Route::get('/barangs/{id}/cetak-pdf', [BarangController::class, 'cetakPdf'])->name('Barang.cetakPdf');
+
+        // Export & Import
+        Route::get('/barang/export/download', [BarangExportController::class, 'exportDownload'])->name('barangs.export.download');
+        Route::get('/barang/export/server', [BarangExportController::class, 'exportToServer'])->name('barangs.export.server');
+        Route::post('/barang/import', [BarangController::class, 'import'])->name('barangs.import');
+    });
 });
-
-// 3. Rute Show (Detail) - HARUS PALING BAWAH
-// Karena ini menggunakan parameter wildcard {barang}
-Route::get('/barangs/{barang}', [BarangController::class, 'show'])->name('Barang.show');

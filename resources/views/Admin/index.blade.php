@@ -55,20 +55,20 @@
                 <i class="fas fa-plus mr-2"></i> Tambah Admin
             </a>
         </div>
-{{-- Filter & Search Section --}}
-<div class="mb-6 flex flex-col md:flex-row gap-4 justify-between items-end">
-    <form action="{{ route('Admin.index') }}" method="GET" class="w-full flex flex-col md:flex-row gap-4 items-end">
+    {{-- Filter & Search Section --}}
+    <div class="mb-6 flex flex-col md:flex-row gap-4 justify-between items-end">
+        <form action="{{ route('Admin.index') }}" method="GET" class="w-full flex flex-col md:flex-row gap-4 items-end">
 
-        {{-- Entries Per Page --}}
-        <div class="w-full md:w-32">
-            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Tampilkan</label>
-            <select name="per_page" onchange="this.form.submit()"
-                    class="w-full bg-white border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 block p-2.5 shadow-sm transition-all">
-                @foreach([10, 25, 50, 100] as $size)
-                    <option value="{{ $size }}" {{ request('per_page') == $size ? 'selected' : '' }}>{{ $size }} Baris</option>
-                @endforeach
-            </select>
-        </div>
+            {{-- Entries Per Page --}}
+            <div class="w-full md:w-32">
+                <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Tampilkan</label>
+                <select name="per_page" onchange="this.form.submit()"
+                        class="w-full bg-white border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 block p-2.5 shadow-sm transition-all">
+                    @foreach([10, 25, 50, 100] as $size)
+                        <option value="{{ $size }}" {{ request('per_page') == $size ? 'selected' : '' }}>{{ $size }}</option>
+                    @endforeach
+                </select>
+            </div>
 
         {{-- Search Input --}}
         <div class="relative w-full md:max-w-md">
@@ -113,7 +113,9 @@
                     <tbody class="divide-y divide-slate-100">
                         @forelse($users as $user)
                         <tr class="hover:bg-slate-50/80 transition-colors">
-                            <td class="px-6 py-4 text-center text-sm font-medium text-slate-400">{{ $loop->iteration }}</td>
+                            <td class="px-6 py-4 text-center text-sm font-medium text-slate-400">
+                                {{ ($users->currentPage() - 1) * $users->perPage() + $loop->iteration }}
+                            </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     @if($user->foto_profil)

@@ -47,6 +47,7 @@
 
                 {{-- TOMBOL AKSI (Role 2 Only) --}}
                 <div class="flex flex-wrap gap-3">
+                    @auth
                     @if(auth()->user()->role == 2)
                         <a href="{{ route('Barang.cetakPdf', $barang->id) }}" target="_blank" class="flex-1 lg:flex-none px-6 py-3 bg-slate-800 text-white rounded-2xl text-sm font-bold hover:bg-slate-900 transition-all shadow-lg shadow-slate-200 flex items-center justify-center">
                             <i class="fas fa-file-pdf mr-2 text-teal-400"></i> Download PDF
@@ -61,6 +62,7 @@
                             <span class="text-[10px] font-bold uppercase tracking-wider">Mode Pratinjau</span>
                         </div>
                     @endif
+                    @endauth
                 </div>
             </div>
 

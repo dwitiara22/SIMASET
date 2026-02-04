@@ -12,50 +12,59 @@
                 <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Data Inventaris</h1>
                 <p class="text-sm text-slate-500 mt-1">Kelola dan pantau semua aset barang dalam satu panel terintegrasi.</p>
             </div>
-                {{-- Action Buttons Group --}}
-                @auth
-                    <div class="flex flex-wrap items-center gap-3">
+        @auth
+            <div class="flex flex-wrap items-center justify-end gap-3">
 
-                        {{-- BAGIAN KHUSUS ROLE 2 (Export & Import) --}}
-                        @if(auth()->user()->role == 2)
-                            <div class="flex items-center bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
-                                {{-- EXPORT --}}
-                                <button onclick="openExportModal()"
-                                    class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-xl shadow">
-                                    <i class="fas fa-file-excel mr-2"></i> Export
-                                </button>
+                {{-- GROUP 1: UTILITY (KHUSUS ROLE 2) --}}
+                @if(auth()->user()->role == 2)
+                    <div class="flex flex-wrap items-center bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm gap-1">
 
-                                <div id="exportModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center">
-                                    <div class="bg-white w-full max-w-md rounded-xl shadow-lg p-6">
-                                        <h2 class="text-lg font-semibold mb-4 text-gray-800">Pilih Metode Export</h2>
-                                        <div class="space-y-3">
-                                            <a href="{{ url('/barang/export/download') }}" class="block w-full text-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">📥 Export ke Excel</a>
-                                            <a href="{{ url('/barang/export/server') }}" class="block w-full text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">☁️ Upload ke Drive</a>
-                                        </div>
-                                        <button onclick="closeExportModal()" class="mt-4 w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg">Batal</button>
-                                    </div>
-                                </div>
+                        {{-- EXPORT --}}
+                        <button onclick="openExportModal()"
+                            class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                            <i class="fas fa-file-excel mr-2"></i> Export
+                        </button>
 
-                                <div class="w-px h-6 bg-slate-200 mx-1"></div>
+                        {{-- IMPORT --}}
+                        <form action="{{ route('barangs.import') }}" method="POST" enctype="multipart/form-data" id="importForm" class="m-0">
+                            @csrf
+                            <label class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm cursor-pointer transition-all">
+                                <i class="fas fa-file-import mr-2"></i> Import
+                                <input type="file" name="file" class="hidden" onchange="this.form.submit()" required>
+                            </label>
+                        </form>
 
-                                {{-- IMPORT --}}
-                                <form action="{{ route('barangs.import') }}" method="POST" enctype="multipart/form-data" id="importForm">
-                                    @csrf
-                                    <label class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow cursor-pointer">
-                                        <i class="fas fa-file-import mr-2"></i> Import
-                                        <input type="file" name="file" class="hidden" onchange="this.form.submit()" required>
-                                    </label>
-                                </form>
-                            </div>
-                        @endif
+                        <div class="w-px h-6 bg-slate-200 mx-1 hidden sm:block"></div>
 
-                        {{-- BAGIAN UNTUK SEMUA ROLE (1, 2, 3) YANG SUDAH LOGIN --}}
-                        <a href="{{ route('Barang.create') }}"
-                        class="inline-flex items-center justify-center px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-teal-600/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
-                            <i class="fas fa-plus mr-2"></i> Tambah Barang
-                        </a>
+                        {{-- CETAK PDF & TAHUN --}}
+                        <div class="flex items-center gap-1.5 pl-1">
+                            <select id="filterTahun"
+                                class="text-[11px] py-1.5 border-slate-200 rounded-xl focus:ring-slate-500 focus:border-slate-500 bg-slate-50 font-semibold">
+                                <option value="">Semua Tahun</option>
+                                @foreach(range(date('Y'), 2020) as $year)
+                                    <option value="{{ $year }}">{{ $year }}</option>
+                                @endforeach
+                            </select>
+
+                            <button onclick="bulkPrint()"
+                                class="inline-flex items-center px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                                <i class="fas fa-print mr-2"></i> Cetak PDF
+                            </button>
+                        </div>
+                        <button onclick="clearAllSelection()" class="text-[10px] text-red-500 font-bold hover:underline ml-2">
+                            Reset Pilihan
+                        </button>
                     </div>
-                @endauth
+                @endif
+
+                {{-- GROUP 2: PRIMARY ACTION (SEMUA ROLE) --}}
+                <a href="{{ route('Barang.create') }}"
+                    class="inline-flex items-center justify-center px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-teal-600/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+                    <i class="fas fa-plus mr-2"></i> Tambah Barang
+                </a>
+
+            </div>
+        @endauth
         </div>
 
         {{-- Statistik Ringkas --}}
@@ -93,6 +102,8 @@
         {{-- Filter & Search Section --}}
         <div class="mb-6 flex flex-col md:flex-row gap-4 justify-between items-end">
             <form action="{{ route('Barang.index') }}" method="GET" class="w-full flex flex-col md:flex-row gap-4 items-end">
+
+                {{-- Filter Per Page --}}
                 <div class="w-full md:w-auto">
                     <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Tampilkan</label>
                     <select name="per_page" onchange="this.form.submit()"
@@ -100,10 +111,22 @@
                         <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
                         <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
                         <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
-                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
                     </select>
                 </div>
 
+                {{-- BARU: Filter Kondisi --}}
+                <div class="w-full md:w-auto">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Kondisi</label>
+                    <select name="kondisi" onchange="this.form.submit()"
+                            class="w-full md:w-40 bg-white border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 block p-2.5 shadow-sm">
+                        <option value="">Semua Kondisi</option>
+                        <option value="Baik" {{ request('kondisi') == 'Baik' ? 'selected' : '' }}>Baik</option>
+                        <option value="Rusak Ringan" {{ request('kondisi') == 'Rusak Ringan' ? 'selected' : '' }}>Rusak Ringan</option>
+                        <option value="Rusak Berat" {{ request('kondisi') == 'Rusak Berat' ? 'selected' : '' }}>Rusak Berat</option>
+                    </select>
+                </div>
+
+                {{-- Search Input --}}
                 <div class="relative w-full md:w-80">
                     <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Cari Barang</label>
                     <div class="relative">
@@ -115,20 +138,33 @@
                             placeholder="Nama, kode, atau ruangan...">
                     </div>
                 </div>
-                <button type="submit" class="hidden md:block bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-700 transition-all">
+
+                <button type="submit" class="bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-700 transition-all">
                     Filter
                 </button>
+
+                {{-- Tombol Reset --}}
+                @if(request('search') || request('kondisi'))
+                    <a href="{{ route('Barang.index') }}" class="text-xs text-red-500 font-bold mb-3 hover:underline">Reset</a>
+                @endif
             </form>
         </div>
 
         {{-- Main Content Card --}}
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="overflow-x-auto">
+
                 {{-- TABLE VIEW (Desktop) --}}
                 <table class="w-full text-left border-collapse hidden md:table">
                     <thead>
                         <tr class="bg-slate-50/50 border-b border-slate-100 uppercase text-[11px] font-bold text-slate-500 tracking-wider">
                             <th class="px-4 py-4 text-center w-10">No</th>
+                            @if(auth()->check() && auth()->user()->role == 2)
+                            {{-- Di THEAD: Tambahkan kolom checkbox --}}
+                            <th class="px-4 py-4 text-center w-10">
+                                <input type="checkbox" id="selectAll" class="rounded border-gray-300">
+                            </th>
+                            @endif
                             <th class="px-6 py-4">Informasi Barang</th>
                             <th class="px-6 py-4">Foto</th>
                             <th class="px-6 py-4 text-center">Kondisi</th>
@@ -143,6 +179,12 @@
                             <td class="px-4 py-4 text-center text-xs font-mono text-slate-400">
                                 {{ ($barangs instanceof \Illuminate\Pagination\LengthAwarePaginator) ? ($barangs->firstItem() + $index) : ($index + 1) }}
                             </td>
+                            @if(auth()->check() && auth()->user()->role == 2)
+                            {{-- Di TBODY: Tambahkan checkbox di setiap baris --}}
+                            <td class="px-4 py-4 text-center">
+                                <input type="checkbox" name="ids[]" value="{{ $item->id }}" class="barang-checkbox rounded border-gray-300">
+                            </td>
+                            @endif
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
                                     <span class="font-bold text-slate-900 text-sm mb-0.5">{{ $item->nama_barang }}</span>
@@ -282,6 +324,45 @@
             @endif
         </div>
     </div>
+    <div id="exportModal" class="fixed inset-0 z-[99] hidden overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeExportModal()"></div>
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative w-full max-w-md transform overflow-hidden rounded-3xl bg-white p-6 shadow-2xl transition-all border border-slate-100">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-slate-900">Opsi Export Excel</h3>
+                <button onclick="closeExportModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <a href="{{ route('barangs.export.download') }}"
+                   class="flex items-center p-4 rounded-2xl bg-green-50 border border-green-100 hover:bg-green-100 transition-colors group">
+                    <div class="w-10 h-10 rounded-xl bg-green-600 flex items-center justify-center text-white mr-4 shadow-lg shadow-green-200">
+                        <i class="fas fa-file-download"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-green-900 text-sm">Download Langsung</div>
+                        <div class="text-xs text-green-700/70">Unduh file .xlsx ke perangkat Anda</div>
+                    </div>
+                </a>
+
+                <a href="{{ route('barangs.export.server') }}"
+                   class="flex items-center p-4 rounded-2xl bg-blue-50 border border-blue-100 hover:bg-blue-100 transition-colors group">
+                    <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white mr-4 shadow-lg shadow-blue-200">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-blue-900 text-sm">Simpan di Server</div>
+                        <div class="text-xs text-blue-700/70">Arsipkan file di folder storage server</div>
+                    </div>
+                </a>
+            </div>
+
+            <p class="mt-6 text-[10px] text-center text-slate-400 uppercase tracking-widest font-bold">Laporan Inventaris v2.0</p>
+        </div>
+    </div>
+</div>
 </div>
 
 {{-- MODAL SCRIPTS --}}
@@ -330,5 +411,131 @@
             });
         @endif
     });
+</script>
+<script>
+    // 1. Inisialisasi Storage saat halaman dimuat
+    document.addEventListener('DOMContentLoaded', function() {
+        renderSelectionFromStorage();
+    });
+
+    // 2. Fungsi untuk menyimpan/menghapus ID saat checkbox diklik
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('barang-checkbox')) {
+            let selectedIds = JSON.parse(sessionStorage.getItem('selected_barang_ids')) || [];
+            const id = e.target.value;
+
+            if (e.target.checked) {
+                if (!selectedIds.includes(id)) selectedIds.push(id);
+            } else {
+                selectedIds = selectedIds.filter(item => item !== id);
+                document.getElementById('selectAll').checked = false;
+            }
+
+            sessionStorage.setItem('selected_barang_ids', JSON.stringify(selectedIds));
+            updateVisualCount();
+        }
+    });
+
+    // 3. Handle Select All (Hanya untuk halaman yang sedang dibuka)
+    document.getElementById('selectAll').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.barang-checkbox');
+        let selectedIds = JSON.parse(sessionStorage.getItem('selected_barang_ids')) || [];
+
+        checkboxes.forEach(cb => {
+            cb.checked = this.checked;
+            const id = cb.value;
+            if (this.checked) {
+                if (!selectedIds.includes(id)) selectedIds.push(id);
+            } else {
+                selectedIds = selectedIds.filter(item => item !== id);
+            }
+        });
+
+        sessionStorage.setItem('selected_barang_ids', JSON.stringify(selectedIds));
+        updateVisualCount();
+    });
+
+    // 4. Fungsi Sinkronisasi Checkbox saat pindah halaman
+    function renderSelectionFromStorage() {
+        const selectedIds = JSON.parse(sessionStorage.getItem('selected_barang_ids')) || [];
+        const checkboxes = document.querySelectorAll('.barang-checkbox');
+        let allCheckedOnPage = checkboxes.length > 0;
+
+        checkboxes.forEach(cb => {
+            if (selectedIds.includes(cb.value)) {
+                cb.checked = true;
+            } else {
+                allCheckedOnPage = false;
+            }
+        });
+
+        if (checkboxes.length > 0) {
+            document.getElementById('selectAll').checked = allCheckedOnPage;
+        }
+        updateVisualCount();
+    }
+
+    // 5. Update Tampilan jumlah yang dipilih (Opsional tapi berguna)
+    function updateVisualCount() {
+        const selectedIds = JSON.parse(sessionStorage.getItem('selected_barang_ids')) || [];
+        const count = selectedIds.length;
+        // Anda bisa menambahkan elemen teks di UI untuk menunjukkan "X data dipilih"
+        console.log("Data dipilih lintas halaman: " + count);
+    }
+
+    async function bulkPrint() {
+    const selectedIds = JSON.parse(sessionStorage.getItem('selected_barang_ids')) || [];
+    const tahun = document.getElementById('filterTahun').value;
+
+    // Buat parameter URL
+    let params = new URLSearchParams();
+    if (selectedIds.length > 0) params.append('selected_ids', selectedIds.join(','));
+    if (tahun) params.append('tahun', tahun);
+
+    const checkUrl = "{{ route('Barang.cetakData') }}?" + params.toString();
+
+    // Tampilkan Loading
+    Swal.fire({
+        title: 'Memproses...',
+        text: 'Sedang mengecek ketersediaan data',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    try {
+        // Cek data via AJAX (Header X-Requested-With buat deteksi $request->ajax() di Laravel)
+        const response = await fetch(checkUrl, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+
+            if (result.status === 'empty') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Data Kosong',
+                    text: `Tidak ada data barang di tahun ${tahun || 'tersebut'}.`,
+                    confirmButtonColor: '#0d9488'
+                });
+            }
+        } else {
+            // Jika response bukan JSON (berarti isinya HTML PDF), maka data ADA
+            Swal.close();
+            window.open(checkUrl, '_blank');
+        }
+    } catch (error) {
+        // Fallback jika terjadi error fetch
+        Swal.close();
+        window.open(checkUrl, '_blank');
+    }
+}
+
+</script>
+<script>
+function clearAllSelection() {
+    sessionStorage.removeItem('selected_barang_ids');
+    location.reload(); // Refresh untuk mengosongkan centang secara visual
+}
 </script>
 @endsection

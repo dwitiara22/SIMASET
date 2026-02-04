@@ -36,7 +36,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Barang</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Barang <span class="text-red-500">*</span> </label>
                         <input type="text" name="nama_barang" value="{{ old('nama_barang', $barang->nama_barang) }}" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500/20 outline-none text-sm" required>
                     </div>
 
@@ -51,12 +51,12 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Merek / Type</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Merek / Type <span class="text-red-500">*</span> </label>
                         <input type="text" name="merek" value="{{ old('merek', $barang->merek) }}" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm outline-none">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Kondisi</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Kondisi <span class="text-red-500">*</span> </label>
                         <select name="kondisi" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white">
                             <option value="Baik" {{ $barang->kondisi == 'Baik' ? 'selected' : '' }}>Baik</option>
                             <option value="Rusak Ringan" {{ $barang->kondisi == 'Rusak Ringan' ? 'selected' : '' }}>Rusak Ringan</option>
@@ -71,17 +71,17 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Perolehan</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Perolehan <span class="text-red-500">*</span> </label>
                         <input type="date" name="tgl_peroleh" value="{{ old('tgl_peroleh', $barang->tgl_peroleh) }}" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm" required>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nilai Perolehan (Rp)</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nilai Perolehan (Rp) <span class="text-red-500">*</span> </label>
                         <input type="number" step="0.01" name="nilai_peroleh" value="{{ old('nilai_peroleh', $barang->nilai_peroleh) }}" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm" required>
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Ruangan</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Ruangan <span class="text-red-500">*</span> </label>
                         <input type="text" name="ruangan" value="{{ old('ruangan', $barang->ruangan) }}" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm">
                     </div>
                     <div class="md:col-span-2">
@@ -94,7 +94,7 @@
                     <div class="md:col-span-2 p-5 bg-teal-50/50 rounded-2xl border border-teal-100">
                         <div class="flex justify-between items-center mb-3">
                             <label class="text-sm font-bold text-teal-800 flex items-center">
-                                <i class="fas fa-map-marker-alt mr-2"></i> Lokasi GPS
+                                <i class="fas fa-map-marker-alt mr-2"></i> Lokasi GPS <span class="text-red-500">*</span>
                             </label>
                             <button type="button" onclick="updateLocation()" class="text-[10px] bg-teal-600 text-white px-3 py-1 rounded-lg hover:bg-teal-700 font-bold uppercase">
                                 <i class="fas fa-sync-alt mr-1"></i> Update Lokasi
@@ -113,7 +113,7 @@
                     {{-- FOTO SECTION --}}
                     <div class="md:col-span-2">
                         <label class="block text-sm font-semibold text-slate-700 mb-2">
-                            Foto Inventaris <span id="photo-counter" class="ml-2"></span>
+                            Foto Inventaris <span id="photo-counter" class="ml-2"></span> <span class="text-red-500">*</span> 
                         </label>
 
                         {{-- Container Preview --}}

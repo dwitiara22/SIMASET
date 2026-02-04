@@ -17,8 +17,8 @@ return new class extends Migration
 
             // Identitas & Legalitas
             $table->string('nama_barang');
-            $table->string('kode_barang', 50);
-            $table->string('nup', 20);
+            $table->string('kode_barang', 50)->nullable();
+            $table->string('nup', 20)->nullable();
             $table->enum('kondisi', ['Baik', 'Rusak Ringan', 'Rusak Berat']);
             $table->string('merek')->nullable();
             $table->date('tgl_peroleh');

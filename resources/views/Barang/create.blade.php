@@ -33,7 +33,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Barang</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Barang <span class="text-red-500">*</span> </label>
                         <input type="text" name="nama_barang" value="{{ old('nama_barang') }}"
                             class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all outline-none text-sm"
                             placeholder="Contoh: Laptop MacBook Pro" required>
@@ -43,25 +43,25 @@
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Kode Barang</label>
                         <input type="text" name="kode_barang" value="{{ old('kode_barang') }}"
                             class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all outline-none text-sm"
-                            placeholder="Contoh: 3.01.01.04.001" required>
+                            placeholder="Contoh: 3.01.01.04.001">
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">NUP (No. Urut Pendaftaran)</label>
                         <input type="text" name="nup" value="{{ old('nup') }}"
                             class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all outline-none text-sm"
-                            placeholder="Contoh: 1" required>
+                            placeholder="Contoh: 1" >
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Merek / Type</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Merek / Type <span class="text-red-500">*</span> </label>
                         <input type="text" name="merek" value="{{ old('merek') }}"
                             class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all outline-none text-sm"
                             placeholder="Contoh: Apple / M2 Pro">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Kondisi</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Kondisi <span class="text-red-500">*</span> </label>
                         <select name="kondisi" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all outline-none text-sm bg-white">
                             <option value="Baik">Baik</option>
                             <option value="Rusak Ringan">Rusak Ringan</option>
@@ -76,13 +76,13 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Perolehan</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Perolehan <span class="text-red-500">*</span> </label>
                         <input type="date" name="tgl_peroleh" value="{{ old('tgl_peroleh') }}"
                             class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all outline-none text-sm" required>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nilai Perolehan (Rp)</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nilai Perolehan (Rp) <span class="text-red-500">*</span> </label>
                         <input type="number" step="0.01" name="nilai_peroleh" value="{{ old('nilai_peroleh') }}"
                             class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all outline-none text-sm"
                             placeholder="0.00" required>
@@ -102,7 +102,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Ruangan</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Ruangan <span class="text-red-500">*</span> </label>
                         <input type="text" name="ruangan" value="{{ old('ruangan') }}"
                             class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all outline-none text-sm"
                             placeholder="Contoh: Ruang Rapat Lt. 2">
@@ -116,7 +116,7 @@
 
                         <div class="space-y-4">
                             <div>
-                                <label class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1 block">Alamat Terdeteksi</label>
+                                <label class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1 block">Alamat Terdeteksi <span class="text-red-500">*</span> </label>
                                 <input type="text" name="lokasi" id="lokasi_nama" readonly
                                     class="w-full px-4 py-2.5 rounded-lg bg-white border border-slate-200 text-slate-600 text-sm outline-none cursor-not-allowed"
                                     placeholder="Mencari alamat...">
@@ -141,7 +141,7 @@
                     {{-- Bagian Upload Foto (Modifikasi untuk cicil 1 per 1) --}}
                     <div class="md:col-span-2">
                         <label class="block text-sm font-semibold text-slate-700 mb-2">
-                            Foto Barang <span id="photo-counter" class="text-teal-600">(0/4)</span>
+                            Foto Barang <span id="photo-counter" class="text-teal-600">(0/4) <span class="text-red-500">*</span> </span>
                         </label>
 
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4" id="preview-container">

@@ -17,27 +17,33 @@ class BarangController extends Controller
 {
     public function index(Request $request)
     {
+        // Ambil input filter
         $search = $request->input('search');
+        $kondisi = $request->input('kondisi');
         $perPage = $request->input('per_page', 10);
 
-        // 1. Query Dasar
+        // Query dasar
         $query = Barang::query();
 
-        // 2. Terapkan Filter Search (Jika ada)
-        if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->where('nama_barang', 'like', "%{$search}%")
-                ->orWhere('kode_barang', 'like', "%{$search}%")
-                ->orWhere('ruangan', 'like', "%{$search}%");
+        // Filter berdasarkan Pencarian (Nama, Kode, atau Ruangan)
+        $query->when($search, function ($q) use ($search) {
+            return $q->where(function($inner) use ($search) {
+                $inner->where('nama_barang', 'like', "%{$search}%")
+                    ->orWhere('kode_barang', 'like', "%{$search}%")
+                    ->orWhere('ruangan', 'like', "%{$search}%");
             });
-        }
+        });
 
-        // 3. Ambil data UNTUK STATISTIK (Tanpa Paginate)
-        // Kita ambil semua ID dan Kondisi saja agar ringan secara memori
-        $allStats = $query->get(['id', 'kondisi']);
+        // Filter berdasarkan Kondisi
+        $query->when($kondisi, function ($q) use ($kondisi) {
+            return $q->where('kondisi', $kondisi);
+        });
 
-        // 4. Ambil data UNTUK TABEL (Dengan Paginate)
+        // Eksekusi paginasi dengan mempertahankan query string (agar filter tidak hilang saat pindah halaman)
         $barangs = $query->latest()->paginate($perPage)->withQueryString();
+
+        // Ambil statistik (untuk box angka di atas)
+        $allStats = Barang::all();
 
         return view('barang.index', compact('barangs', 'allStats'));
     }
@@ -48,22 +54,27 @@ class BarangController extends Controller
 
     public function store(Request $request)
     {
-        // 1. Validasi
+        // 1. Validasi dengan pesan kustom
         $request->validate([
             'nama_barang'   => 'required|string|max:255',
-            'kode_barang'   => 'required|string|unique:barangs,kode_barang',
-            'nup'           => 'required|string',
+            'kode_barang'   => 'nullable|string|unique:barangs,kode_barang',
+            'nup'           => 'nullable|string|unique:barangs,nup',
+            'nomor_sk_psp'  => 'nullable|string|max:255|unique:barangs,nomor_sk_psp',
             'kondisi'       => 'required|in:Baik,Rusak Ringan,Rusak Berat',
             'tgl_peroleh'   => 'required|date',
             'nilai_peroleh' => 'required|numeric',
-            // TAMBAHKAN VALIDASI NOMOR SK PSP DI SINI
-            'nomor_sk_psp'  => 'nullable|string|max:255',
             'ruangan'       => 'nullable|string|max:255',
             'lokasi'        => 'nullable|string',
             'latitude'      => 'nullable|string',
             'longitude'     => 'nullable|string',
             'fotoBarang'    => 'required|array|size:4',
             'fotoBarang.*'  => 'image|mimes:jpeg,png,jpg|max:2048'
+        ], [
+            // Pesan error khusus untuk data duplikat
+            'kode_barang.unique'  => 'Kode Barang ini sudah terdaftar!',
+            'nup.unique'          => 'Nomor NUP ini sudah terdaftar!',
+            'nomor_sk_psp.unique' => 'Nomor SK PSP ini sudah terdaftar!',
+            'fotoBarang.size'     => 'Anda harus mengunggah tepat 4 foto.',
         ]);
 
         try {
@@ -78,7 +89,7 @@ class BarangController extends Controller
                 }
             }
 
-            // 3. Simpan Data
+            // Simpan Data
             Barang::create([
                 'user_id'       => auth()->id(),
                 'nama_barang'   => $request->nama_barang,
@@ -88,12 +99,12 @@ class BarangController extends Controller
                 'kondisi'       => $request->kondisi,
                 'tgl_peroleh'   => $request->tgl_peroleh,
                 'nilai_peroleh' => $request->nilai_peroleh,
-                'nomor_sk_psp'  => $request->nomor_sk_psp, // Sekarang sudah melewati validasi
+                'nomor_sk_psp'  => $request->nomor_sk_psp,
                 'ruangan'       => $request->ruangan,
                 'lokasi'        => $request->lokasi,
                 'latitude'      => $request->latitude,
                 'longitude'     => $request->longitude,
-                'fotoBarang'    => $paths,
+                'fotoBarang'    => $paths, // Pastikan model menghandle casting array/json
             ]);
 
             DB::commit();
@@ -101,12 +112,13 @@ class BarangController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
+            // Hapus foto jika database gagal menyimpan
             if (!empty($paths)) {
                 foreach ($paths as $p) {
                     Storage::disk('public')->delete($p);
                 }
             }
-            return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
         }
     }
 
@@ -233,12 +245,11 @@ class BarangController extends Controller
         }
     }
 
-    public function show($id)
+   public function show($id)
     {
-        $barang = Barang::findOrFail($id);
+        $barang = Barang::with('user')->findOrFail($id);
         return view('barang.detail', compact('barang'));
     }
-
     public function export()
     {
         return Excel::download(new BarangsExport, 'data-barang.xlsx');
@@ -265,4 +276,42 @@ class BarangController extends Controller
 
         return $pdf->stream('Detail-Barang-' . $barang->kode_barang . '.pdf');
     }
+
+    public function cetakData(Request $request)
+    {
+        // Menggunakan query builder dengan Eager Loading 'user'
+        $query = Barang::with('user');
+
+        // Filter 1: Berdasarkan ID yang dipilih di checkbox
+        if ($request->filled('selected_ids')) {
+            $ids = explode(',', $request->selected_ids);
+            $query->whereIn('id', $ids);
+        }
+
+        // Filter 2: Berdasarkan Tahun (Mengacu pada tgl_peroleh di model)
+        if ($request->filled('tahun')) {
+            $query->whereYear('tgl_peroleh', $request->tahun);
+        }
+
+        // Urutan berdasarkan tanggal peroleh terbaru
+        $barangs = $query->orderBy('tgl_peroleh', 'desc')->get();
+
+        // Validasi data kosong
+        if ($barangs->isEmpty()) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'status' => 'empty',
+                    'message' => 'Data tidak ditemukan untuk tahun peroleh ' . $request->tahun
+                ]);
+            }
+            return redirect()->back()->with('error', 'Data tidak ditemukan.');
+        }
+
+        // Generate PDF
+        $pdf = Pdf::loadView('barang.barangPdf', compact('barangs'))
+                    ->setPaper('a4', 'portrait');
+
+        return $pdf->stream('Laporan_Inventaris_' . date('d_m_Y') . '.pdf');
+}
+
 }

@@ -117,7 +117,7 @@
             {{-- DATA BARANG --}}
 
             <li x-data="{ hover: false }" class="relative flex items-center">
-                <a href="{{ route('Barang.index') }}"
+                <a href="{{ route('barang.index') }}"
                 @mouseenter="hover = true"
                 @mouseleave="hover = false"
                 @click="if(window.innerWidth < 1024) sidebarOpen = false"

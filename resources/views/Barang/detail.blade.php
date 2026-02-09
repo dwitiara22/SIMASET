@@ -7,12 +7,12 @@
         {{-- BREADCRUMB & TOMBOL KEMBALI --}}
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <nav class="flex text-sm text-slate-500">
-                <a href="{{ route('Barang.index') }}" class="hover:text-teal-600 transition-colors">Data Barang</a>
+                <a href="{{ route('barang.index') }}" class="hover:text-teal-600 transition-colors">Data Barang</a>
                 <span class="mx-2">/</span>
                 <span class="text-slate-900 font-semibold">Detail Inventaris</span>
             </nav>
 
-            <a href="{{ route('Barang.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm w-fit">
+            <a href="{{ route('barang.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm w-fit">
                 <i class="fas fa-arrow-left mr-2 text-teal-500"></i> Kembali
             </a>
         </div>

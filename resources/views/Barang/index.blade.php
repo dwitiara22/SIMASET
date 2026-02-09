@@ -101,7 +101,7 @@
 
         {{-- Filter & Search Section --}}
         <div class="mb-6 flex flex-col md:flex-row gap-4 justify-between items-end">
-            <form action="{{ route('Barang.index') }}" method="GET" class="w-full flex flex-col md:flex-row gap-4 items-end">
+            <form action="{{ route('barang.index') }}" method="GET" class="w-full flex flex-col md:flex-row gap-4 items-end">
 
                 {{-- Filter Per Page --}}
                 <div class="w-full md:w-auto">
@@ -126,6 +126,28 @@
                     </select>
                 </div>
 
+
+                 <!-- FILTER KELENGKAPAN -->
+                  
+                    <form method="GET" action="{{ route('barang.index') }}">
+                        <select name="status"
+                                onchange="this.form.submit()"
+                                class="w-full md:w-40 bg-white border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 block p-2.5 shadow-sm">
+
+                            <option value="">Semua Data</option>
+
+                            <option value="lengkap"
+                                {{ request('status') == 'lengkap' ? 'selected' : '' }}>
+                                Data Lengkap
+                            </option>
+
+                            <option value="belum"
+                                {{ request('status') == 'belum' ? 'selected' : '' }}>
+                                Data Belum Lengkap
+                            </option>
+                        </select>
+                    </form>
+
                 {{-- Search Input --}}
                 <div class="relative w-full md:w-80">
                     <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Cari Barang</label>
@@ -145,7 +167,7 @@
 
                 {{-- Tombol Reset --}}
                 @if(request('search') || request('kondisi'))
-                    <a href="{{ route('Barang.index') }}" class="text-xs text-red-500 font-bold mb-3 hover:underline">Reset</a>
+                    <a href="{{ route('barang.index') }}" class="text-xs text-red-500 font-bold mb-3 hover:underline">Reset</a>
                 @endif
             </form>
         </div>
@@ -184,6 +206,7 @@
                             <td class="px-4 py-4 text-center">
                                 <input type="checkbox" name="ids[]" value="{{ $item->id }}" class="barang-checkbox rounded border-gray-300">
                             </td>
+
                             @endif
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
@@ -284,7 +307,15 @@
                             <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase {{ $item->kondisi == 'Baik' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
                                 {{ $item->kondisi }}
                             </span>
+                            <span class="mt-1 inline-block px-2 py-0.5 rounded-full text-[9px] font-bold
+                                {{ $item->status_kelengkapan == 'Lengkap'
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : 'bg-amber-100 text-amber-700' }}">
+                                {{ $item->status_kelengkapan }}
+                            </span>
+
                         </div>
+
                         <div class="flex justify-between items-center">
                             <span class="text-xs font-bold text-teal-600">
                                 Rp {{ number_format($item->nilai_peroleh, 0, ',', '.') }}

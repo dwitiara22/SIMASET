@@ -96,7 +96,7 @@
             <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-6 border-b border-slate-100 flex justify-between items-center">
                     <h3 class="font-bold text-slate-800">Aktivitas Terakhir</h3>
-                    <a href="{{ route('Barang.index') }}" class="text-blue-600 text-xs font-bold hover:underline">Lihat Semua</a>
+                    <a href="{{ route('barang.index') }}" class="text-blue-600 text-xs font-bold hover:underline">Lihat Semua</a>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">

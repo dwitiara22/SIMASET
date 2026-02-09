@@ -39,6 +39,29 @@ class BarangController extends Controller
             return $q->where('kondisi', $kondisi);
         });
 
+        // Status Kelengkapan
+         if ($request->status === 'lengkap') {
+        $query->whereNotNull('kode_barang')->where('kode_barang', '!=', '')
+              ->whereNotNull('nup')->where('nup', '!=', '')
+              ->whereNotNull('nomor_sk_psp')->where('nomor_sk_psp', '!=', '')
+              ->whereNotNull('ruangan')->where('ruangan', '!=', '')
+              ->whereNotNull('lokasi')->where('lokasi', '!=', '')
+              ->whereNotNull('latitude')->where('latitude', '!=', '')
+              ->whereNotNull('longitude')->where('longitude', '!=', '');
+    }
+
+    if ($request->status === 'belum') {
+        $query->where(function ($q) {
+            $q->whereNull('kode_barang')->orWhere('kode_barang', '')
+              ->orWhereNull('nup')->orWhere('nup', '')
+              ->orWhereNull('nomor_sk_psp')->orWhere('nomor_sk_psp', '')
+              ->orWhereNull('ruangan')->orWhere('ruangan', '')
+              ->orWhereNull('lokasi')->orWhere('lokasi', '')
+              ->orWhereNull('latitude')->orWhere('latitude', '')
+              ->orWhereNull('longitude')->orWhere('longitude', '');
+        });
+    }
+
         // Eksekusi paginasi dengan mempertahankan query string (agar filter tidak hilang saat pindah halaman)
         $barangs = $query->latest()->paginate($perPage)->withQueryString();
 
@@ -108,7 +131,7 @@ class BarangController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->route('Barang.index')->with('success', 'Inventaris berhasil ditambahkan!');
+            return redirect()->route('barang.index')->with('success', 'Inventaris berhasil ditambahkan!');
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -145,6 +168,33 @@ class BarangController extends Controller
             'longitude'     => 'nullable|string',
             'fotoBarang.*'  => 'image|mimes:jpeg,png,jpg|max:2048'
         ]);
+
+
+         $requiredFields = [
+        'nama_barang',
+        'kode_barang',
+        'nup',
+        'nomor_sk_psp',
+        'kondisi',
+        'tgl_peroleh',
+        'nilai_peroleh',
+        'ruangan',
+        'lokasi',
+        'latitude',
+        'longitude',
+    ];
+
+    // ==============================
+    // CEK STATUS KELENGKAPAN
+    // ==============================
+    $status_kelengkapan = 'Lengkap';
+
+    foreach ($requiredFields as $field) {
+        if (empty($request->$field)) {
+            $status_kelengkapan = 'Tidak Lengkap';
+            break;
+        }
+    }
 
         try {
             DB::beginTransaction();
@@ -200,7 +250,7 @@ class BarangController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->route('Barang.index')->with('success', 'Data inventaris berhasil diperbarui!');
+            return redirect()->route('barang.index')->with('success', 'Data inventaris berhasil diperbarui!');
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -237,11 +287,11 @@ class BarangController extends Controller
             $barang->delete();
 
             DB::commit();
-            return redirect()->route('Barang.index')->with('success', 'Data inventaris dan seluruh foto berhasil dihapus!');
+            return redirect()->route('barang.index')->with('success', 'Data inventaris dan seluruh foto berhasil dihapus!');
 
         } catch (\Exception $e) {
             DB::rollback();
-            return redirect()->route('Barang.index')->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return redirect()->route('barang.index')->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
 
@@ -313,5 +363,8 @@ class BarangController extends Controller
 
         return $pdf->stream('Laporan_Inventaris_' . date('d_m_Y') . '.pdf');
 }
+
+
+
 
 }

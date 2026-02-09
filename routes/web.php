@@ -22,7 +22,7 @@ Route::middleware(['auth', 'cek_status:1'])->group(function () {
 });
 
     // 1. Rute Index (Daftar Barang)
-Route::get('/barang', [BarangController::class, 'index'])->name('Barang.index');
+Route::get('/barang', [BarangController::class, 'index'])->name('barang.index');
 
 // RUTE BARANG
 Route::middleware('auth')->group(function () {
@@ -51,3 +51,7 @@ Route::middleware('auth')->group(function () {
 });
     // 4. Rute Show (Detail Barang) - TARUH PALING BAWAH
     Route::get('/barangs/{barang}', [BarangController::class, 'show'])->name('Barang.show');
+
+Route::resource('barang', BarangController::class);
+
+

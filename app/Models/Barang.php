@@ -18,6 +18,55 @@ class Barang extends Model
         'fotoBarang' => 'array',
     ];
 
+     public function getStatusKelengkapanAttribute()
+    {
+        $wajib = [
+            $this->kode_barang,
+            $this->nup,
+            $this->nomor_sk_psp,
+            $this->ruangan,
+            $this->lokasi,
+            $this->latitude,
+            $this->longitude,
+        ];
+
+        foreach ($wajib as $item) {
+            if (is_null($item) || $item === '') {
+                return 'Tidak Lengkap';
+            }
+        }
+
+        return 'Lengkap';
+    }
+
+    // ===============================
+    // SCOPE FILTER
+    // ===============================
+    public function scopeLengkap($query)
+    {
+        return $query
+            ->whereNotNull('kode_barang')
+            ->whereNotNull('nup')
+            ->whereNotNull('nomor_sk_psp')
+            ->whereNotNull('ruangan')
+            ->whereNotNull('lokasi')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude');
+    }
+
+    public function scopeTidakLengkap($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('kode_barang')
+              ->orWhereNull('nup')
+              ->orWhereNull('nomor_sk_psp')
+              ->orWhereNull('ruangan')
+              ->orWhereNull('lokasi')
+              ->orWhereNull('latitude')
+              ->orWhereNull('longitude');
+        });
+    }
+    
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');

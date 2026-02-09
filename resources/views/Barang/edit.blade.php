@@ -4,7 +4,7 @@
 <div class="p-6 min-h-screen bg-slate-50">
     <div class="max-w-4xl mx-auto">
         <nav class="flex mb-4 text-sm text-slate-500">
-            <a href="{{ route('Barang.index') }}" class="hover:text-teal-600">Data Barang</a>
+            <a href="{{ route('barang.index') }}" class="hover:text-teal-600">Data Barang</a>
             <span class="mx-2">/</span>
             <span class="text-slate-900 font-medium">Edit Inventaris</span>
         </nav>
@@ -133,7 +133,7 @@
                 </div>
 
                 <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
-                    <a href="{{ route('Barang.index') }}" class="px-6 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50">Batal</a>
+                    <a href="{{ route('barang.index') }}" class="px-6 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50">Batal</a>
                     <button type="submit" class="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 shadow-lg transition-all">
                         <i class="fas fa-save mr-2"></i> Simpan Perubahan
                     </button>

@@ -7,7 +7,7 @@
     <div class="max-w-4xl mx-auto">
         {{-- Breadcrumb --}}
         <nav class="flex mb-4 text-sm text-slate-500">
-            <a href="{{ route('Barang.index') }}" class="hover:text-teal-600 transition-colors">Data Barang</a>
+            <a href="{{ route('barang.index') }}" class="hover:text-teal-600 transition-colors">Data Barang</a>
             <span class="mx-2">/</span>
             <span class="text-slate-900 font-medium">Tambah Barang Baru</span>
         </nav>
@@ -163,7 +163,7 @@
 
                 {{-- Action Buttons --}}
                 <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
-                    <a href="{{ route('Barang.index') }}"
+                    <a href="{{ route('barang.index') }}"
                         class="px-6 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-all">
                         Batal
                     </a>

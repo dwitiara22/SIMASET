@@ -19,10 +19,10 @@
                 @if(auth()->user()->role == 2)
                     <div class="flex flex-wrap items-center bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm gap-1">
 
-                        {{-- EXPORT --}}
+                        {{-- Tombol Export Tunggal --}}
                         <button onclick="openExportModal()"
-                            class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
-                            <i class="fas fa-file-excel mr-2"></i> Export
+                            class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-600 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                            <i class="fas fa-file-export mr-2"></i> Export Data
                         </button>
 
                         {{-- IMPORT --}}
@@ -125,41 +125,45 @@
                         <option value="Rusak Berat" {{ request('kondisi') == 'Rusak Berat' ? 'selected' : '' }}>Rusak Berat</option>
                     </select>
                 </div>
+                <form method="GET" action="{{ route('barang.index') }}" class="flex flex-col md:flex-row items-end gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
 
-
-                 <!-- FILTER KELENGKAPAN -->
-                  
-                    <form method="GET" action="{{ route('barang.index') }}">
+                    <div class="w-full md:w-48">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block ml-1 tracking-wider">Status Data</label>
                         <select name="status"
                                 onchange="this.form.submit()"
-                                class="w-full md:w-40 bg-white border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 block p-2.5 shadow-sm">
-
+                                class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 block p-2.5 transition-all duration-200 cursor-pointer">
                             <option value="">Semua Data</option>
-
-                            <option value="lengkap"
-                                {{ request('status') == 'lengkap' ? 'selected' : '' }}>
-                                Data Lengkap
-                            </option>
-
-                            <option value="belum"
-                                {{ request('status') == 'belum' ? 'selected' : '' }}>
-                                Data Belum Lengkap
-                            </option>
+                            <option value="lengkap" {{ request('status') == 'lengkap' ? 'selected' : '' }}>✅ Data Lengkap</option>
+                            <option value="belum" {{ request('status') == 'belum' ? 'selected' : '' }}>⚠️ Belum Lengkap</option>
                         </select>
-                    </form>
-
-                {{-- Search Input --}}
-                <div class="relative w-full md:w-80">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Cari Barang</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <i class="fas fa-search text-slate-400 text-xs"></i>
-                        </div>
-                        <input type="text" name="search" value="{{ request('search') }}"
-                            class="bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 block w-full pl-10 p-2.5 shadow-sm"
-                            placeholder="Nama, kode, atau ruangan...">
                     </div>
-                </div>
+
+                    <div class="w-full md:w-80">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block ml-1 tracking-wider">Cari Barang</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+                                <i class="fas fa-search text-slate-400 group-focus-within:text-teal-500 transition-colors"></i>
+                            </div>
+                            <input type="text"
+                                name="search"
+                                value="{{ request('search') }}"
+                                class="bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 block w-full pl-10 p-2.5 transition-all duration-200 outline-none"
+                                placeholder="Nama, kode, atau ruangan...">
+
+                            <button type="submit" class="absolute inset-y-1 right-1 px-3 text-xs font-medium text-white bg-teal-500 rounded-lg hover:bg-teal-600 transition-colors">
+                                Cari
+                            </button>
+                        </div>
+                    </div>
+
+                    @if(request('search') || request('status'))
+                        <div class="pb-1">
+                            <a href="{{ route('barang.index') }}" class="text-xs text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1 mb-2">
+                                <i class="fas fa-times-circle"></i> Reset Filter
+                            </a>
+                        </div>
+                    @endif
+                </form>
 
                 <button type="submit" class="bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-700 transition-all">
                     Filter
@@ -206,7 +210,6 @@
                             <td class="px-4 py-4 text-center">
                                 <input type="checkbox" name="ids[]" value="{{ $item->id }}" class="barang-checkbox rounded border-gray-300">
                             </td>
-
                             @endif
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
@@ -307,15 +310,7 @@
                             <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase {{ $item->kondisi == 'Baik' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
                                 {{ $item->kondisi }}
                             </span>
-                            <span class="mt-1 inline-block px-2 py-0.5 rounded-full text-[9px] font-bold
-                                {{ $item->status_kelengkapan == 'Lengkap'
-                                    ? 'bg-emerald-100 text-emerald-700'
-                                    : 'bg-amber-100 text-amber-700' }}">
-                                {{ $item->status_kelengkapan }}
-                            </span>
-
                         </div>
-
                         <div class="flex justify-between items-center">
                             <span class="text-xs font-bold text-teal-600">
                                 Rp {{ number_format($item->nilai_peroleh, 0, ',', '.') }}
@@ -356,46 +351,45 @@
         </div>
     </div>
     <div id="exportModal" class="fixed inset-0 z-[99] hidden overflow-y-auto">
-    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeExportModal()"></div>
-    <div class="flex min-h-full items-center justify-center p-4">
-        <div class="relative w-full max-w-md transform overflow-hidden rounded-3xl bg-white p-6 shadow-2xl transition-all border border-slate-100">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-bold text-slate-900">Opsi Export Excel</h3>
-                <button onclick="closeExportModal()" class="text-slate-400 hover:text-slate-600">
-                    <i class="fas fa-times"></i>
-                </button>
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeExportModal()"></div>
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative w-full max-w-md transform overflow-hidden rounded-3xl bg-white p-6 shadow-2xl transition-all border border-slate-100">
+
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-bold text-slate-900">Opsi Export</h3>
+                    <button onclick="closeExportModal()" class="text-slate-400 hover:text-slate-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    {{-- OPSI 1: DOWNLOAD LANGSUNG --}}
+                    <a href="{{ route('barangs.export.download') }}"
+                    class="flex items-center p-4 rounded-2xl bg-green-50 border border-green-100 hover:bg-green-100 transition-colors group text-left w-full">
+                        <div class="w-10 h-10 rounded-xl bg-green-600 flex items-center justify-center text-white mr-4 shadow-lg shadow-green-200">
+                            <i class="fas fa-file-download"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-green-900 text-sm">Download Excel</div>
+                            <div class="text-xs text-green-700/70">Unduh file langsung ke perangkat</div>
+                        </div>
+                    </a>
+
+                    {{-- OPSI 2: SYNC GOOGLE SHEETS (Sekarang Button) --}}
+                    <button onclick="exportToGoogleSheets()"
+                            class="flex items-center p-4 rounded-2xl bg-emerald-50 border border-emerald-100 hover:bg-emerald-100 transition-colors group text-left w-full">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white mr-4 shadow-lg shadow-emerald-200">
+                            <i class="fab fa-google-drive"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-emerald-900 text-sm">Sync Google Sheets</div>
+                            <div class="text-xs text-emerald-700/70">Ekspor otomatis ke Google Drive</div>
+                        </div>
+                    </button>
+                <p class="mt-6 text-[10px] text-center text-slate-400 uppercase tracking-widest font-bold">Laporan Inventaris v2.0</p>
             </div>
-
-            <div class="space-y-4">
-                <a href="{{ route('barangs.export.download') }}"
-                   class="flex items-center p-4 rounded-2xl bg-green-50 border border-green-100 hover:bg-green-100 transition-colors group">
-                    <div class="w-10 h-10 rounded-xl bg-green-600 flex items-center justify-center text-white mr-4 shadow-lg shadow-green-200">
-                        <i class="fas fa-file-download"></i>
-                    </div>
-                    <div>
-                        <div class="font-bold text-green-900 text-sm">Download Langsung</div>
-                        <div class="text-xs text-green-700/70">Unduh file .xlsx ke perangkat Anda</div>
-                    </div>
-                </a>
-
-                <a href="{{ route('barangs.export.server') }}"
-                   class="flex items-center p-4 rounded-2xl bg-blue-50 border border-blue-100 hover:bg-blue-100 transition-colors group">
-                    <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white mr-4 shadow-lg shadow-blue-200">
-                        <i class="fas fa-server"></i>
-                    </div>
-                    <div>
-                        <div class="font-bold text-blue-900 text-sm">Simpan di Server</div>
-                        <div class="text-xs text-blue-700/70">Arsipkan file di folder storage server</div>
-                    </div>
-                </a>
-            </div>
-
-            <p class="mt-6 text-[10px] text-center text-slate-400 uppercase tracking-widest font-bold">Laporan Inventaris v2.0</p>
         </div>
     </div>
-</div>
-</div>
-
 {{-- MODAL SCRIPTS --}}
 <script>
     function openExportModal() {
@@ -568,5 +562,74 @@ function clearAllSelection() {
     sessionStorage.removeItem('selected_barang_ids');
     location.reload(); // Refresh untuk mengosongkan centang secara visual
 }
+async function exportToGoogleSheets() {
+    // 1. Cek apakah ada data yang dicentang
+    const selectedIds = JSON.parse(sessionStorage.getItem('selected_barang_ids')) || [];
+
+    // 2. Tentukan teks konfirmasi berdasarkan kondisi (Centang vs Semua)
+    let confirmText = "";
+    let fetchUrl = "{{ route('barang.index') }}?get_json=1";
+
+    if (selectedIds.length > 0) {
+        confirmText = `${selectedIds.length} data terpilih akan disinkronkan.`;
+        fetchUrl += "&ids=" + selectedIds.join(',');
+    } else {
+        confirmText = "Tidak ada data yang dicentang. SEMUA data akan disinkronkan ke Google Sheets.";
+    }
+
+    const confirm = await Swal.fire({
+        title: 'Konfirmasi Sinkronisasi',
+        text: confirmText,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Sinkronkan!',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#10b981'
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    Swal.fire({
+        title: 'Menghubungkan ke Cloud...',
+        text: 'Mohon tunggu sebentar...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    try {
+        // Ambil data (baik dengan filter ID atau semua data)
+        const response = await fetch(fetchUrl);
+        const barangData = await response.json();
+
+        if (!barangData || barangData.length === 0) {
+            Swal.fire({ icon: 'info', title: 'Kosong', text: 'Tidak ada data untuk dikirim.' });
+            return;
+        }
+
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxQI4A3FjO1ENsNNl4DuEi0NfMaISLX9RMuVAYHZhf4-N42cpj89-ziGYKUqdfWZw/exec';
+
+        // Kirim ke Google Apps Script
+        await fetch(scriptURL, {
+            method: 'POST',
+            mode: 'no-cors',
+            cache: 'no-cache',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(barangData)
+        });
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Sinkronisasi Selesai',
+            text: 'Data berhasil diproses. Sistem otomatis melewati data duplikat.',
+            confirmButtonColor: '#10b981'
+        });
+
+    } catch (error) {
+        console.error(error);
+        Swal.fire({ icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan saat mengambil atau mengirim data.' });
+    }
+}
 </script>
+
+
 @endsection

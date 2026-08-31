@@ -16,60 +16,76 @@ use Illuminate\Support\Facades\Storage;
 class BarangController extends Controller
 {
     public function index(Request $request)
-    {
-        // Ambil input filter
-        $search = $request->input('search');
-        $kondisi = $request->input('kondisi');
-        $perPage = $request->input('per_page', 10);
+{
+    // 1. Ambil input filter
+    $search = $request->input('search');
+    $kondisi = $request->input('kondisi');
+    $perPage = $request->input('per_page', 10);
 
-        // Query dasar
-        $query = Barang::query();
+    // 2. Query dasar
+    $query = Barang::query();
 
-        // Filter berdasarkan Pencarian (Nama, Kode, atau Ruangan)
-        $query->when($search, function ($q) use ($search) {
-            return $q->where(function($inner) use ($search) {
-                $inner->where('nama_barang', 'like', "%{$search}%")
-                    ->orWhere('kode_barang', 'like', "%{$search}%")
-                    ->orWhere('ruangan', 'like', "%{$search}%");
-            });
+    // 3. Filter berdasarkan Pencarian
+    $query->when($search, function ($q) use ($search) {
+        return $q->where(function($inner) use ($search) {
+            $inner->where('nama_barang', 'like', "%{$search}%")
+                ->orWhere('kode_barang', 'like', "%{$search}%")
+                ->orWhere('nup', 'like', "%{$search}%")
+                ->orWhere('merek', 'like', "%{$search}%")
+                ->orWhere('ruangan', 'like', "%{$search}%");
         });
+    });
 
-        // Filter berdasarkan Kondisi
-        $query->when($kondisi, function ($q) use ($kondisi) {
-            return $q->where('kondisi', $kondisi);
-        });
+    // 4. Filter berdasarkan Kondisi
+    $query->when($kondisi, function ($q) use ($kondisi) {
+        return $q->where('kondisi', $kondisi);
+    });
 
-        // Status Kelengkapan
-         if ($request->status === 'lengkap') {
+    // 5. Filter Status Kelengkapan
+    if ($request->status === 'lengkap') {
         $query->whereNotNull('kode_barang')->where('kode_barang', '!=', '')
-              ->whereNotNull('nup')->where('nup', '!=', '')
-              ->whereNotNull('nomor_sk_psp')->where('nomor_sk_psp', '!=', '')
-              ->whereNotNull('ruangan')->where('ruangan', '!=', '')
-              ->whereNotNull('lokasi')->where('lokasi', '!=', '')
-              ->whereNotNull('latitude')->where('latitude', '!=', '')
-              ->whereNotNull('longitude')->where('longitude', '!=', '');
+            ->whereNotNull('nup')->where('nup', '!=', '')
+            ->whereNotNull('nomor_sk_psp')->where('nomor_sk_psp', '!=', '')
+            ->whereNotNull('ruangan')->where('ruangan', '!=', '')
+            ->whereNotNull('latitude')->where('latitude', '!=', '')
+            ->whereNotNull('longitude')->where('longitude', '!=', '');
     }
 
     if ($request->status === 'belum') {
         $query->where(function ($q) {
             $q->whereNull('kode_barang')->orWhere('kode_barang', '')
-              ->orWhereNull('nup')->orWhere('nup', '')
-              ->orWhereNull('nomor_sk_psp')->orWhere('nomor_sk_psp', '')
-              ->orWhereNull('ruangan')->orWhere('ruangan', '')
-              ->orWhereNull('lokasi')->orWhere('lokasi', '')
-              ->orWhereNull('latitude')->orWhere('latitude', '')
-              ->orWhereNull('longitude')->orWhere('longitude', '');
+            ->orWhereNull('nup')->orWhere('nup', '')
+            ->orWhereNull('nomor_sk_psp')->orWhere('nomor_sk_psp', '')
+            ->orWhereNull('ruangan')->orWhere('ruangan', '')
+            ->orWhereNull('latitude')->orWhere('latitude', '')
+            ->orWhereNull('longitude')->orWhere('longitude', '');
         });
     }
 
-        // Eksekusi paginasi dengan mempertahankan query string (agar filter tidak hilang saat pindah halaman)
-        $barangs = $query->latest()->paginate($perPage)->withQueryString();
+    /** * LOGIKA PERBAIKAN UNTUK GOOGLE SHEETS
+     * Dipindahkan ke bawah agar filter search/kondisi tetap berlaku jika user melakukan eksport
+     */
+    if ($request->has('get_json')) {
+        // Jika user mencentang data tertentu (mengirim parameter ids)
+        if ($request->has('ids') && !empty($request->ids)) {
+            $ids = explode(',', $request->ids);
+            $query->whereIn('id', $ids);
+        }
 
-        // Ambil statistik (untuk box angka di atas)
-        $allStats = Barang::all();
+        // Ambil data berdasarkan query yang sudah dibangun (bisa semua data filter atau data centang)
+        $data = $query->latest()->get();
 
-        return view('barang.index', compact('barangs', 'allStats'));
+        return response()->json($data);
     }
+
+    // 6. Eksekusi paginasi untuk tampilan web biasa
+    $barangs = $query->latest()->paginate($perPage)->withQueryString();
+
+    // 7. Ambil statistik
+    $allStats = Barang::select('kondisi')->get();
+
+    return view('barang.index', compact('barangs', 'allStats'));
+}
 
     public function create() {
         return view('barang.create');
